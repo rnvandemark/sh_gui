@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SoundFilePlaybackPage</class>
+ <widget class="QWidget" name="sound_file_playback_page">
+  <property name="fixedSize">
+   <size>
+    <width>750</width>
+    <height>350</height>
+   </size>
+  </property>
+  <layout class="QGridLayout" name="overall_layout">
+   <item row="0" column="0">
+    <widget class="ClickableImage" name="load_btn">
+     <property name="fixedSize">
+      <size>
+       <width>80</width>
+       <height>80</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>💾</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="ClickableImage" name="play_pause_btn">
+     <property name="fixedSize">
+      <size>
+       <width>80</width>
+       <height>80</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>⏯</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="ClickableImage" name="stop_btn">
+     <property name="fixedSize">
+      <size>
+       <width>80</width>
+       <height>80</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>⏹</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="3">
+    <widget class="ClickableImage" name="skip_btn">
+     <property name="fixedSize">
+      <size>
+       <width>80</width>
+       <height>80</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>⏭️</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="4">
+    <widget class="QSlider" name="sound_file_playback_status">
+     <property name="orientation">
+      <set>Horizontal</set>
+     </property>
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="minimum">
+      <number>0</number>
+     </property>
+     <property name="maximum">
+      <number>100000</number>
+     </property>
+     <property name="value">
+      <number>0</number>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="4">
+    <widget class="QLabel" name="playback_time">
+     <property name="alignment">
+      <set>AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0" colspan="4">
+    <widget class="QLabel" name="sound_file_name">
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+     <property name="alignment">
+      <set>AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+    <class>ClickableImage</class>
+    <header>scripts.ClickableImage</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FollowHubSubpage</class>
+ <widget class="QWidget" name="follow_hub_subpage">
+  <layout class="QHBoxLayout" name="overall_layout">
+   <item column="0">
+    <widget class="QLabel" name="red_lbl">
+     <property name="fixedSize">
+      <size>
+       <width>150</width>
+       <height>150</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item column="1">
+    <widget class="QLabel" name="org_lbl">
+     <property name="fixedSize">
+      <size>
+       <width>150</width>
+       <height>150</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item column="2">
+    <widget class="QLabel" name="ylw_lbl">
+     <property name="fixedSize">
+      <size>
+       <width>150</width>
+       <height>150</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item column="3">
+    <widget class="QLabel" name="grn_lbl">
+     <property name="fixedSize">
+      <size>
+       <width>150</width>
+       <height>150</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item column="4">
+    <widget class="QLabel" name="blu_lbl">
+     <property name="fixedSize">
+      <size>
+       <width>150</width>
+       <height>150</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item column="5">
+    <widget class="QLabel" name="ind_lbl">
+     <property name="fixedSize">
+      <size>
+       <width>150</width>
+       <height>150</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item column="6">
+    <widget class="QLabel" name="vlt_lbl">
+     <property name="fixedSize">
+      <size>
+       <width>150</width>
+       <height>150</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
+

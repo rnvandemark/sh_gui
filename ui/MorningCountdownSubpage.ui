@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MorningCountdownSubpage</class>
+ <widget class="QWidget" name="morning_countdown_subpage">
+  <property name="maximumWidth">
+   <number>1200</number>
+  </property>
+  <layout class="QGridLayout" name="overall_layout">
+   <property name="horizontalSpacing">
+    <number>25</number>
+   </property>
+   <item row="0" column="0" rowspan="3" colspan="2">
+    <widget class="QWidget" name="set_time_content">
+     <property name="maximumWidth">
+      <number>200</number>
+     </property>
+     <property name="minimumWidth">
+      <number>200</number>
+     </property>
+     <layout class="QGridLayout" name="set_times_layout">
+      <item row="0" column="0" alignment="Qt::AlignHCenter">
+       <widget class="QSlider" name="hour_slider">
+        <property name="orientation">
+         <set>Vertical</set>
+        </property>
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>12</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" alignment="Qt::AlignHCenter">
+       <widget class="QRadioButton" name="am_radio_btn">
+        <property name="text">
+         <string>AM</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" alignment="Qt::AlignHCenter">
+       <widget class="QSlider" name="minute_slider">
+        <property name="orientation">
+         <set>Vertical</set>
+        </property>
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>59</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" alignment="Qt::AlignHCenter">
+       <widget class="QRadioButton" name="pm_radio_btn">
+        <property name="text">
+         <string>PM</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="2" alignment="Qt::AlignHCenter">
+       <widget class="QLabel" name="goal_time_lbl"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QSlider" name="red_slider">
+     <property name="orientation">
+      <set>Horizontal</set>
+     </property>
+     <property name="minimum">
+      <number>0</number>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QSlider" name="yellow_slider">
+     <property name="orientation">
+      <set>Horizontal</set>
+     </property>
+     <property name="minimum">
+      <number>0</number>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="QSlider" name="green_slider">
+     <property name="orientation">
+      <set>Horizontal</set>
+     </property>
+     <property name="minimum">
+      <number>0</number>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="3">
+    <widget class="QLabel" name="red_lbl">
+     <property name="maximumWidth">
+      <number>400</number>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="3">
+    <widget class="QLabel" name="yellow_lbl">
+     <property name="maximumWidth">
+      <number>400</number>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="3">
+    <widget class="QLabel" name="green_lbl">
+     <property name="maximumWidth">
+      <number>400</number>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0" colspan="4">
+    <widget class="QPushButton" name="confirm_goal_time_btn">
+     <property name="text">
+      <string>Confirm!</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="4" rowspan="3">
+    <widget class="QStackedWidget" name="traffic_light_images">
+     <widget class="QLabel" name="none_traffic_light_image">
+      <property name="alignment">
+       <set>AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="green_traffic_light_image">
+      <property name="alignment">
+       <set>AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="yellow_traffic_light_image">
+      <property name="alignment">
+       <set>AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="red_traffic_light_image">
+      <property name="alignment">
+       <set>AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="all_traffic_light_image">
+      <property name="alignment">
+       <set>AlignCenter</set>
+      </property>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

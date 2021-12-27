@@ -1,0 +1,5 @@
+# Ignore compiled Python objects
+*.pyc
+
+# Ignore UI files generated during ament_python
+scripts/Ui_*.py

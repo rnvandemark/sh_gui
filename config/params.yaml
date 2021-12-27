@@ -1,0 +1,3 @@
+/smart_home/sh_gui:
+    ros__parameters:
+        heartbeat_period_ms: 2000

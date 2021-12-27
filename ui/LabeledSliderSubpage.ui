@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>LabeledSliderSubpage</class>
+ <widget class="QWidget" name="labeled_slider_subpage">
+  <property name="maximumSize">
+   <size>
+    <width>600</width>
+    <height>200</height>
+   </size>
+  </property>
+  <layout class="QVBoxLayout" name="layout">
+   <item row="0">
+    <widget class="QSlider" name="slider">
+     <property name="orientation">
+      <set>Horizontal</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1">
+    <widget class="QLabel" name="lbl">
+     <property name="alignment">
+      <set>AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
