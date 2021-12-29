@@ -60,7 +60,7 @@ class GuiNode(Node):
 
         self.heartbeat_pub = self.create_publisher(
             Header,
-            "/smart_home/heartbeat",
+            sh_common_py.topics.HEARTBEAT,
             10
         )
 
@@ -77,49 +77,49 @@ class GuiNode(Node):
 
         self.mode_change_pub = self.create_publisher(
             ModeChange,
-            "/smart_home/mode_change_chatter",
+            sh_common_py.topics.CONFIRMED_MODE_CHANGES,
             1
         )
 
-        self.device_activation_change_pub = self.create_publisher(
-            DeviceActivationChange,
-            "/smart_home/device_activation_change_chatter",
-            MAX_AUX_DEVICE_COUNT
-        )
+#        self.device_activation_change_pub = self.create_publisher(
+#            DeviceActivationChange,
+#            "/smart_home/device_activation_change_chatter",
+#            MAX_AUX_DEVICE_COUNT
+#        )
 
         self.intensity_change_pub = self.create_publisher(
             Float32,
-            "/smart_home/intensity_change_chatter",
+            sh_common_py.topics.INTENSITY_CHANGE_UPDATES,
             1
         )
 
         self.countdown_state_pub = self.create_publisher(
             CountdownState,
-            "/smart_home/countdown_state_chatter",
+            sh_common_py.topics.COUNTDOWN_STATE_UPDATES,
             1
         )
 
         self.start_wave_mode_pub = self.create_publisher(
             Empty,
-            "/smart_home/start_wave_mode_chatter",
+            sh_common_py.topics.START_WAVE_MODE,
             1
         )
 
         self.wave_update_pub = self.create_publisher(
             WaveUpdate,
-            "/smart_home/wave_update_chatter",
+            sh_common_py.topics.WAVE_UPDATES,
             MAX_AUX_DEVICE_COUNT
         )
 
         self.sound_file_playback_command_pub = self.create_publisher(
             PlaybackCommand,
-            "/smart_home/playback_commands",
+            sh_common_py.topics.PLAYBACK_COMMANDS,
             10
         )
 
         self.sound_file_path_list_pub = self.create_publisher(
             StringArr,
-            "/smart_home/sound_file_path_list",
+            sh_common_py.topics.REQUESTED_PLAYBACK_FILES,
             10
         )
 
@@ -129,56 +129,56 @@ class GuiNode(Node):
 
         self.mode_change_request_sub = self.create_subscription(
             ModeChangeRequest,
-            "/smart_home/mode_change_request_chatter",
+            sh_common_py.topics.REQUESTED_MODE_CHANGES,
             self.mode_change_request_callback,
             1
         )
 
         self.countdown_state_sub = self.create_subscription(
             CountdownState,
-            "/smart_home/countdown_state_chatter",
+            sh_common_py.topics.COUNTDOWN_STATE_UPDATES,
             self.countdown_state_callback,
             1
         )
 
         self.participant_location_sub = self.create_subscription(
             WaveParticipantLocation,
-            "/smart_home/wave_participant_location_chatter",
+            sh_common_py.topics.WAVE_PARTICIPANT_LOCATION,
             self.participant_location_callback,
             MAX_AUX_DEVICE_COUNT
         )
 
         self.color_peak_left_sub = self.create_subscription(
             Color,
-            "/smart_home/color_peak_left",
+            sh_common_py.topics.LEFT_COLOR_PEAK,
             self.left_color_peak_callback,
             1
         )
 
         self.color_peak_right_sub = self.create_subscription(
             Color,
-            "/smart_home/color_peak_right",
+            sh_common_py.topics.RIGHT_COLOR_PEAK,
             self.right_color_peak_callback,
             1
         )
 
         self.cap_peaks_telem_sub = self.create_subscription(
             ColorPeaksTelem,
-            "/smart_home/color_peaks_telem",
+            sh_common_py.topics.COLOR_PEAKS_TELEM,
             self.color_peaks_telem_callback,
             1
         )
 
         self.playback_frequencies_sub = self.create_subscription(
             Float32Arr,
-            "/smart_home/playback_frequencies",
+            sh_common_py.topics.PLAYBACK_FREQUENCIES,
             self.playback_frequencies_callback,
             1
         )
 
         self.cap_peaks_telem_sub = self.create_subscription(
             PlaybackUpdate,
-            "/smart_home/playback_updates",
+            sh_common_py.topics.PLAYBACK_UPDATES,
             self.playback_updates_callback,
             1
         )
@@ -189,12 +189,12 @@ class GuiNode(Node):
 
         self.screen_calibration_request_cli = self.create_client(
             RequestScreenCalibration,
-            "/smart_home/screen_calibration_requests"
+            sh_common_py.services.REQUEST_SCREEN_COLOR_CALIBRTION
         )
 
         self.screen_calibration_set_homography_points_cli = self.create_client(
             SetScreenCalibrationPointsOfHomography,
-            "/smart_home/screen_calibration_homography_points"
+            sh_common_py.services.SET_SCREEN_COLOR_HOMOG_POINTS
         )
 
         # Local variable(s)
@@ -319,16 +319,16 @@ class GuiNode(Node):
     def right_color_peak_callback(self, msg):
         self.qt_parent.right_color_peak_updated.emit(msg)
     
-    ## A helper function to package a device (in)activation request.
-    #  @param self The object pointer.
-    #  @param device_id The coordinated ID for the device that is being requested to be activated or deactivated.
-    #  @param active Whether or not the device is to be activated or otherwise.
-    def send_device_activation_change(self, device_id, active):
-        device_activation_change_msg = DeviceActivationChange()
-        device_activation_change_msg.device_id = device_id
-        device_activation_change_msg.active = active
-        self.device_activation_change_pub.publish(device_activation_change_msg)
-        self.log_info("Set device with ID [{0}] to [{1}ACTIVE].".format(device_id, "" if active else "IN"))
+#    ## A helper function to package a device (in)activation request.
+#    #  @param self The object pointer.
+#    #  @param device_id The coordinated ID for the device that is being requested to be activated or deactivated.
+#    #  @param active Whether or not the device is to be activated or otherwise.
+#    def send_device_activation_change(self, device_id, active):
+#        device_activation_change_msg = DeviceActivationChange()
+#        device_activation_change_msg.device_id = device_id
+#        device_activation_change_msg.active = active
+#        self.device_activation_change_pub.publish(device_activation_change_msg)
+#        self.log_info("Set device with ID [{0}] to [{1}ACTIVE].".format(device_id, "" if active else "IN"))
     
     ## Update the individual control intensity.
     #  @param self The object pointer.
