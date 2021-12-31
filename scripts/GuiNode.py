@@ -60,7 +60,7 @@ class GuiNode(Node):
 
         self.heartbeat_pub = self.create_publisher(
             Header,
-            sh_common_py.topics.HEARTBEAT,
+            self.get_name() + "/" + sh_common_py.topics.HEARTBEAT_SUFFIX,
             10
         )
 
