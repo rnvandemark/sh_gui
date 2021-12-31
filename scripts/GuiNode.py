@@ -227,7 +227,7 @@ class GuiNode(Node):
     #  @param self The object pointer.
     #  @param smsg The string message to log.
     def log_err(self, smsg):
-        self.get_logger().err(smsg)
+        self.get_logger().error(smsg)
 
     ## Log fatal to ROSOUT.
     #  @param self The object pointer.
@@ -361,21 +361,23 @@ class GuiNode(Node):
     #  @param min_dist Minimum possible Euclidean pixel distance between found corners.
     #  @return The response to the ROS service request.
     def request_screen_calibration(self, max_corners, quality_level, min_dist):
-        return self.screen_calibration_request_cli(
-            max_corners=max_corners,
-            quality_level=quality_level,
-            min_dist=min_dist,
-            do_blur=True,
-            kh=5,
-            kw=5
-        )
+        req = RequestScreenCalibration.Request()
+        req.max_corners = max_corners
+        req.quality_level = float(quality_level)
+        req.min_dist = float(min_dist)
+        req.do_blur = True
+        req.kh = 5
+        req.kw = 5
+        return self.screen_calibration_request_cli.call(req)
     
     ## Attempt to use the four selected points for screen calibration homography.
     #  @param self The object pointer.
     #  @param pts The four ROS points of homography.
     #  @return The response to the ROS service request.
     def confirm_screen_calibration(self, pts):
-        result = self.screen_calibration_set_homography_points_cli(pts_of_homog=pts)
+        req = SetScreenCalibrationPointsOfHomography.Request()
+        req.pts_of_homog = pts
+        result = self.screen_calibration_set_homography_points_cli.call(req)
         if result.successful:
             self.log_info(
                 "Homog pts: {0}, {1}, {2}, {3}".format(*["[x={0},y={1}]".format(p.x,p.y) for p in pts])
