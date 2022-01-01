@@ -33,7 +33,7 @@ class ProposedCornersImage(QLabel):
     ## Set this pixel map to the given image.
     #  @param self The object pointer.
     #  @param msg The ROS msg image.
-    def set_from_ros_img(self, msg):
-        self.setFixedSize(msg.width, msg.height)
-        self.setPixmap(GuiUtils.get_qpixmap_from_rosimg(msg))
+    def set_from_ros_img(self, msg, new_height, new_width):
+        self.setFixedSize(new_width, new_height)
+        self.setPixmap(GuiUtils.get_qpixmap_from_rosimg(msg).scaled(new_width, new_height))
         self.ready = True

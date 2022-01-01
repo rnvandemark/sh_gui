@@ -228,9 +228,14 @@ class Gui(QMainWindow):
     ## The callback to changing the wave update period slider.
     #  @param self The object pointer.
     def handle_corner_calibration_request(self):
-        img = self.gui_controller.request_screen_calibration()
-        if img is not None:
-            self.ui.corner_calibration_page.ui.proposed_corners_image.set_from_ros_img(img)
+        rv = self.gui_controller.request_screen_calibration(max_corners=100)
+        if rv is not None:
+            img, scaled_height, scaled_width = rv
+            self.ui.corner_calibration_page.ui.proposed_corners_image.set_from_ros_img(
+                img,
+                scaled_height,
+                scaled_width
+            )
 
     ## The callback to the user clicking on the proposed homography points image.
     #  @param self The object pointer.

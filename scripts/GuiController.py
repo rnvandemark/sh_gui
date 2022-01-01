@@ -98,6 +98,8 @@ class CornerCalibrationData(object):
     ## The constructor.
     #  @param self The object pointer.
     def __init__(self):
+        self.height_factor = None
+        self.width_factor = None
         self.detected = None
         self.tree = None
         self.clear_selected()
@@ -109,8 +111,12 @@ class CornerCalibrationData(object):
 
     ## Set the detected feature points of the current view and create their binary search tree.
     #  @param self The object pointer.
+    #  @param size_original The original size of the image, as received by the service call.
+    #  @param size_new The size of the image after resizing for display in the GUI.
     #  @param points The detected feature points.
-    def set_detected(self, points):
+    def set_detected(self, size_original, size_new, points):
+        self.height_factor = size_original[0] / size_new[0]
+        self.width_factor = size_original[1] / size_new[1]
         self.detected = points
         self.tree = cKDTree([(p.x,p.y) for p in self.detected])
 
@@ -130,7 +136,10 @@ class CornerCalibrationData(object):
                     idx = i
                     break
             if idx != -1:
-                _, ii = self.tree.query((x,y), k=1, n_jobs=n_jobs)
+                _, ii = self.tree.query((x * self.width_factor, y * self.height_factor),
+                                        k=1,
+                                        n_jobs=n_jobs
+                )
                 corner = self.detected[ii]
                 self.selected[idx] = corner
         return idx, corner
@@ -325,8 +334,14 @@ class GuiController(QObject):
                                                           quality_level,
                                                           min_dist)
         if result.corners_found:
-            self.corner_calibration_data.set_detected(result.corner_positions)
-            return result.marked_image
+            scaled_width = GuiUtils.COLOR_PEAK_COLOR_COORDINATOR_IMAGE_WIDTH
+            scaled_height = GuiUtils.COLOR_PEAK_COLOR_COORDINATOR_IMAGE_HEIGHT
+            self.corner_calibration_data.set_detected(
+                (result.marked_image.height, result.marked_image.width),
+                (scaled_height, scaled_width),
+                result.corner_positions
+            )
+            return result.marked_image, scaled_height, scaled_width
         else:
             self.gui_node.log_err("Corner detection pipeline failed.")
             return None
