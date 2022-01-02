@@ -74,7 +74,7 @@ class Gui(QMainWindow):
         bg_palette = QPalette()
         bg_palette.setBrush(
             QPalette.Window,
-            QBrush(QPixmap(GuiUtils.get_resource_url("kyoto.png")).scaled(
+            QBrush(QPixmap(GuiUtils.get_image_url("kyoto.png")).scaled(
                 self.screen_size,
                 Qt.IgnoreAspectRatio))
         )

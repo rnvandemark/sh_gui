@@ -52,11 +52,17 @@ CV_BRIDGE = CvBridge()
 def get_mode_characteristics(val):
     return MODES_DICT[val] if val in MODES_DICT else ("UNDEFINED", "#FF0000")
 
-## Access a resource in the installation library.
-#  @param url_suffix The name of the directory and file to access.
-#  @return The absolute URL of the desired resource.
-def get_resource_url(url_suffix):
-    return ojoin(GUI_INSTALL_LIB_DIRECTORY, "images", url_suffix)
+## Get the full path of some file in this package.
+#  @param url_components The remaining/suffix components of the file URL.
+#  @return The absolute URL of the desired file.
+def get_asset_url(*url_components):
+    return ojoin(GUI_INSTALL_LIB_DIRECTORY, *url_components)
+
+## Get the full path of an image in this package.
+#  @param url_components The remaining/suffix components of the file URL.
+#  @return The absolute URL of the desired image.
+def get_image_url(*url_components):
+    return get_asset_url("images", *url_components)
 
 ## Given a ROS img message, get a corresponding QPixmap.
 #  @warning Assumes BGR8 image format.

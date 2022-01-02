@@ -57,7 +57,7 @@ class MorningCountdownSubpage(QWidget):
         # Init each traffic light image
         for i,state in enumerate(["none", "green", "yellow", "red", "all"]):
             self.ui.traffic_light_images.widget(i).setPixmap(QPixmap(
-                GuiUtils.get_resource_url("traffic_lights/traffic_light_{0}.png".format(state))
+                GuiUtils.get_image_url("traffic_lights", "traffic_light_{0}.png".format(state))
             ).scaled(GuiUtils.TRAFFIC_LIGHT_IMAGE_WIDTH, GuiUtils.TRAFFIC_LIGHT_IMAGE_HEIGHT))
 
         # Make Qt connections
