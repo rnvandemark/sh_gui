@@ -1,0 +1,38 @@
+/* This stylesheet is applied application wide. There are some values that are */
+/* replaced at runtime with the syntax $XXX, where XXX is some hardcoded */
+/* constant in constants.sass. */
+
+QLabel, QPushButton, QRadioButton, QComboBox {
+    color: $COLOR_STD_COMPONENT_FG;
+    font-family: MSGothic;
+    font-size: 34px;
+    font-weight: bold;
+}
+
+QPushButton, QComboBox {
+    background-color: $COLOR_STD_COMPONENT_BG;
+}
+
+QLabel#red_lbl {
+    color: $COLOR_TRAFFIC_LIGHT_RED;
+}
+
+QLabel#yellow_lbl {
+    color: $COLOR_TRAFFIC_LIGHT_YLW;
+}
+
+QLabel#green_lbl {
+    color: $COLOR_TRAFFIC_LIGHT_GRN;
+}
+
+QSlider#red_slider {
+    color: $COLOR_TRAFFIC_LIGHT_RED;
+}
+
+QSlider#yellow_slider {
+    color: $COLOR_TRAFFIC_LIGHT_YLW;
+}
+
+QSlider#green_slider {
+    color: $COLOR_TRAFFIC_LIGHT_GRN;
+}

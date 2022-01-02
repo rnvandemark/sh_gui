@@ -34,26 +34,6 @@ class MorningCountdownSubpage(QWidget):
         self.btn_group.addButton(self.ui.pm_radio_btn)
         self.ui.am_radio_btn.click()
 
-        # Set individual styles
-        GuiUtils.adjust_palette(
-            self.ui.red_slider,
-            (QPalette.Button, GuiUtils.COLOR_TRAFFIC_LIGHT_RED),
-            (QPalette.Highlight, GuiUtils.COLOR_TRAFFIC_LIGHT_RED)
-        )
-        GuiUtils.adjust_palette(
-            self.ui.yellow_slider,
-            (QPalette.Button, GuiUtils.COLOR_TRAFFIC_LIGHT_YLW),
-            (QPalette.Highlight, GuiUtils.COLOR_TRAFFIC_LIGHT_YLW)
-        )
-        GuiUtils.adjust_palette(
-            self.ui.green_slider,
-            (QPalette.Button, GuiUtils.COLOR_TRAFFIC_LIGHT_GRN),
-            (QPalette.Highlight, GuiUtils.COLOR_TRAFFIC_LIGHT_GRN)
-        )
-        GuiUtils.set_label_text_color(self.ui.red_lbl, GuiUtils.COLOR_TRAFFIC_LIGHT_RED)
-        GuiUtils.set_label_text_color(self.ui.yellow_lbl, GuiUtils.COLOR_TRAFFIC_LIGHT_YLW)
-        GuiUtils.set_label_text_color(self.ui.green_lbl, GuiUtils.COLOR_TRAFFIC_LIGHT_GRN)
-
         # Init each traffic light image
         for i,state in enumerate(["none", "green", "yellow", "red", "all"]):
             self.ui.traffic_light_images.widget(i).setPixmap(QPixmap(

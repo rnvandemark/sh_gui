@@ -31,6 +31,7 @@ setup(
             "images/kyoto.png",
         ]),
         ("share/" + package_name + "/images/traffic_lights", prefixed_files_in("images/traffic_lights")),
+        ("share/" + package_name + "/style", prefixed_files_in("style")),
     ],
     install_requires=["setuptools"],
     zip_safe=True,

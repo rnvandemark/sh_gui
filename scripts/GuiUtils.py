@@ -13,23 +13,14 @@ from sh_common_interfaces.msg import ModeChange
 
 GUI_INSTALL_LIB_DIRECTORY = get_package_share_directory("sh_gui")
 
-MODE_LABEL_YELLOW = "#F0E68C"
-
-COLOR_STD_COMPONENT_FG = "#652828"
-COLOR_STD_COMPONENT_BG = "#CDCDCD"
-
-COLOR_TRAFFIC_LIGHT_RED = "#F00"
-COLOR_TRAFFIC_LIGHT_YLW = "#FF0"
-COLOR_TRAFFIC_LIGHT_GRN = "#0A0"
-
 MODES_DICT = {
     ModeChange.FULL_OFF             : ("Full Off",           "#0F2F2F"),
     ModeChange.FULL_ON              : ("Full On",            "#3CCB2C"),
-    ModeChange.INDIVIDUAL_CONTROL   : ("Individual Control", MODE_LABEL_YELLOW),
-    ModeChange.MORNING_COUNTDOWN    : ("Morning Countdown",  MODE_LABEL_YELLOW),
-    ModeChange.FOLLOW_COMPUTER_SOUND: ("Follow Hub",         MODE_LABEL_YELLOW),
-    ModeChange.FOLLOW_ROOM_SOUND    : ("Follow Room",        MODE_LABEL_YELLOW),
-    ModeChange.WAVE                 : ("Wave",               MODE_LABEL_YELLOW)
+    ModeChange.INDIVIDUAL_CONTROL   : ("Individual Control", "#F0E68C"),
+    ModeChange.MORNING_COUNTDOWN    : ("Morning Countdown",  "#F0E68C"),
+    ModeChange.FOLLOW_COMPUTER_SOUND: ("Follow Hub",         "#F0E68C"),
+    ModeChange.FOLLOW_ROOM_SOUND    : ("Follow Room",        "#F0E68C"),
+    ModeChange.WAVE                 : ("Wave",               "#F0E68C")
 }
 
 TRAFFIC_LIGHT_IMAGE_WIDTH  = 200

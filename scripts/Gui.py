@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt, QCoreApplication, pyqtSignal
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QPixmap, QPalette, QColor, QBrush, QFont
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
@@ -57,18 +57,6 @@ class Gui(QMainWindow):
             (7,23)
         )
 
-        # Set application-wide settings for widgets
-        std_font = QFont("MSGothic", pointSize=28)
-        std_font.setBold(True)
-        QApplication.setFont(std_font, "QLabel")
-        QApplication.setFont(std_font, "QPushButton")
-        QApplication.setFont(std_font, "QRadioButton")
-        std_palette = QPalette()
-        std_palette.setBrush(QPalette.WindowText, QColor(GuiUtils.COLOR_STD_COMPONENT_FG))
-        QApplication.setPalette(std_palette, "QLabel")
-        QApplication.setPalette(std_palette, "QPushButton")
-        QApplication.setPalette(std_palette, "QRadioButton")
-
         # Set background image
         self.screen_size = QApplication.instance().primaryScreen().size()
         bg_palette = QPalette()
@@ -86,21 +74,12 @@ class Gui(QMainWindow):
 
         # Populate available mode type dropdown
         self.ui.curr_mode_dropdown.addItems(v[0] for v in GuiUtils.MODES_DICT.values())
-        self.ui.curr_mode_dropdown.setFont(std_font)
         # Set this text here because it's easier to do so than in the .ui file
         self.ui.prev_page_btn.setText("<<")
         self.ui.next_page_btn.setText(">>")
         # Set single-slider subpage slider states
         self.ui.individual_control_subpage.set_slider_state(1, 1000, 500)
         self.ui.wave_subpage.set_slider_state(1, 6000, 1000)
-        # TODO: fix colors
-        GuiUtils.adjust_palette(
-            self.ui.curr_mode_dropdown,
-            (QPalette.Text, GuiUtils.COLOR_STD_COMPONENT_FG),
-            (QPalette.WindowText, GuiUtils.COLOR_STD_COMPONENT_FG),
-            (QPalette.Window, GuiUtils.COLOR_STD_COMPONENT_BG),
-            (QPalette.Base, GuiUtils.COLOR_STD_COMPONENT_BG)
-        )
 
         #
         # Make Qt connections
