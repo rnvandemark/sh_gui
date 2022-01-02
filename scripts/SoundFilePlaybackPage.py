@@ -49,7 +49,6 @@ class SoundFilePlaybackPage(QWidget):
         self.ui.play_pause_btn.clicked.connect(lambda: self.request_playback_command(PlaybackCommand.PAUSE if self.playing else PlaybackCommand.RESUME))
         self.ui.stop_btn.clicked.connect(lambda: self.request_playback_command(PlaybackCommand.STOP))
         self.ui.skip_btn.clicked.connect(lambda: self.request_playback_command(PlaybackCommand.SKIP))
-        self.ui.load_btn.clicked.connect(self.load_sound_files)
 
         # Done
         self.show()
@@ -62,19 +61,19 @@ class SoundFilePlaybackPage(QWidget):
         msg.cmd = cmd
         self.sf_playback_command_requested.emit(msg)
 
-    ## Open a file dialog to queue one or more sound files for playback.
-    #  @param self The object pointer.
-    def load_sound_files(self):
-        sound_file_paths, _ = QFileDialog.getOpenFileNames(
-            self,
-            "Select one or more sound files to open",
-            "/home",
-            "MP3s or WAVs (*.mp3 *.wav)"
-        )
-        if len(sound_file_paths) > 0:
-            sound_files_msg = StringArr()
-            sound_files_msg.data = sound_file_paths
-            self.sf_files_requested.emit(sound_files_msg)
+#    ## Open a file dialog to queue one or more sound files for playback.
+#    #  @param self The object pointer.
+#    def load_sound_files(self):
+#        sound_file_paths, _ = QFileDialog.getOpenFileNames(
+#            self,
+#            "Select one or more sound files to open",
+#            "/home",
+#            "MP3s or WAVs (*.mp3 *.wav)"
+#        )
+#        if len(sound_file_paths) > 0:
+#            sound_files_msg = StringArr()
+#            sound_files_msg.data = sound_file_paths
+#            self.sf_files_requested.emit(sound_files_msg)
 
     ## Update UI elements to "nothing".
     #  @param self The object pointer.
