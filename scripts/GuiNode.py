@@ -2,8 +2,10 @@ from PyQt5.QtCore import QThread
 
 from rclpy import spin as rclpy_spin, shutdown as rclpy_shutdown
 from rclpy.node import Node
-import sh_common_py
 from std_msgs.msg import Empty, Float32, Header
+
+import sh_common_constants
+from sh_common.heartbeat_node import HeartbeatNode
 from sh_common_interfaces.msg import ModeChange, ModeChangeRequest, \
     DeviceActivationChange, CountdownState, WaveParticipantLocation, \
     WaveUpdate, Float32Arr, Color, StringArr
@@ -11,8 +13,6 @@ from sh_sfp_interfaces.msg import PlaybackCommand, PlaybackUpdate
 from sh_scc_interfaces.msg import ColorPeaksTelem
 from sh_scc_interfaces.srv import RequestScreenCalibration, \
     SetScreenCalibrationPointsOfHomography
-
-PARAM_HEARTBEAT_PERIOD_MS = sh_common_py.params.HEARTBEAT_PERIOD_MS
 
 MAX_AUX_DEVICE_COUNT = 32
 
@@ -39,7 +39,7 @@ class SimpleRosThread(QThread):
         self.node.log_info("Exiting ROS spin.")
 
 ## A class that owns all ROS elements, acting as the means of ROS connectivity for the smart home GUI.
-class GuiNode(Node):
+class GuiNode(HeartbeatNode):
 
     ## The constructor.
     #  @param self The object pointer.
@@ -48,36 +48,12 @@ class GuiNode(Node):
         super(GuiNode, self).__init__("sh_gui")
 
         #
-        # Replicate HeartbeatNode functionality
-        #
-
-        self.declare_parameters(
-            namespace="",
-            parameters=[
-                (PARAM_HEARTBEAT_PERIOD_MS, -1),
-            ]
-        )
-
-        self.heartbeat_pub = self.create_publisher(
-            Header,
-            self.get_name() + "/" + sh_common_py.topics.HEARTBEAT_SUFFIX,
-            10
-        )
-
-        self.heartbeat_msg = Header()
-        self.heartbeat_msg.frame_id = self.get_name()
-        self.heartbeat_timer = self.create_timer(
-            self.get_parameter(PARAM_HEARTBEAT_PERIOD_MS).value / 1000,
-            self.heartbeat_callback
-        )
-
-        #
         # ROS publishers
         #
 
         self.mode_change_pub = self.create_publisher(
             ModeChange,
-            sh_common_py.topics.CONFIRMED_MODE_CHANGES,
+            sh_common_constants.topics.CONFIRMED_MODE_CHANGES,
             1
         )
 
@@ -89,37 +65,37 @@ class GuiNode(Node):
 
         self.intensity_change_pub = self.create_publisher(
             Float32,
-            sh_common_py.topics.INTENSITY_CHANGE_UPDATES,
+            sh_common_constants.topics.INTENSITY_CHANGE_UPDATES,
             1
         )
 
         self.countdown_state_pub = self.create_publisher(
             CountdownState,
-            sh_common_py.topics.COUNTDOWN_STATE_UPDATES,
+            sh_common_constants.topics.COUNTDOWN_STATE_UPDATES,
             1
         )
 
         self.start_wave_mode_pub = self.create_publisher(
             Empty,
-            sh_common_py.topics.START_WAVE_MODE,
+            sh_common_constants.topics.START_WAVE_MODE,
             1
         )
 
         self.wave_update_pub = self.create_publisher(
             WaveUpdate,
-            sh_common_py.topics.WAVE_UPDATES,
+            sh_common_constants.topics.WAVE_UPDATES,
             MAX_AUX_DEVICE_COUNT
         )
 
         self.sound_file_playback_command_pub = self.create_publisher(
             PlaybackCommand,
-            sh_common_py.topics.PLAYBACK_COMMANDS,
+            sh_common_constants.topics.PLAYBACK_COMMANDS,
             10
         )
 
         self.sound_file_path_list_pub = self.create_publisher(
             StringArr,
-            sh_common_py.topics.REQUESTED_PLAYBACK_FILES,
+            sh_common_constants.topics.REQUESTED_PLAYBACK_FILES,
             10
         )
 
@@ -129,56 +105,56 @@ class GuiNode(Node):
 
         self.mode_change_request_sub = self.create_subscription(
             ModeChangeRequest,
-            sh_common_py.topics.REQUESTED_MODE_CHANGES,
+            sh_common_constants.topics.REQUESTED_MODE_CHANGES,
             self.mode_change_request_callback,
             1
         )
 
         self.countdown_state_sub = self.create_subscription(
             CountdownState,
-            sh_common_py.topics.COUNTDOWN_STATE_UPDATES,
+            sh_common_constants.topics.COUNTDOWN_STATE_UPDATES,
             self.countdown_state_callback,
             1
         )
 
         self.participant_location_sub = self.create_subscription(
             WaveParticipantLocation,
-            sh_common_py.topics.WAVE_PARTICIPANT_LOCATION,
+            sh_common_constants.topics.WAVE_PARTICIPANT_LOCATION,
             self.participant_location_callback,
             MAX_AUX_DEVICE_COUNT
         )
 
         self.color_peak_left_sub = self.create_subscription(
             Color,
-            sh_common_py.topics.LEFT_COLOR_PEAK,
+            sh_common_constants.topics.LEFT_COLOR_PEAK,
             self.left_color_peak_callback,
             1
         )
 
         self.color_peak_right_sub = self.create_subscription(
             Color,
-            sh_common_py.topics.RIGHT_COLOR_PEAK,
+            sh_common_constants.topics.RIGHT_COLOR_PEAK,
             self.right_color_peak_callback,
             1
         )
 
         self.cap_peaks_telem_sub = self.create_subscription(
             ColorPeaksTelem,
-            sh_common_py.topics.COLOR_PEAKS_TELEM,
+            sh_common_constants.topics.COLOR_PEAKS_TELEM,
             self.color_peaks_telem_callback,
             1
         )
 
         self.playback_frequencies_sub = self.create_subscription(
             Float32Arr,
-            sh_common_py.topics.PLAYBACK_FREQUENCIES,
+            sh_common_constants.topics.PLAYBACK_FREQUENCIES,
             self.playback_frequencies_callback,
             1
         )
 
         self.cap_peaks_telem_sub = self.create_subscription(
             PlaybackUpdate,
-            sh_common_py.topics.PLAYBACK_UPDATES,
+            sh_common_constants.topics.PLAYBACK_UPDATES,
             self.playback_updates_callback,
             1
         )
@@ -189,12 +165,12 @@ class GuiNode(Node):
 
         self.screen_calibration_request_cli = self.create_client(
             RequestScreenCalibration,
-            sh_common_py.services.REQUEST_SCREEN_COLOR_CALIBRTION
+            sh_common_constants.services.REQUEST_SCREEN_COLOR_CALIBRTION
         )
 
         self.screen_calibration_set_homography_points_cli = self.create_client(
             SetScreenCalibrationPointsOfHomography,
-            sh_common_py.services.SET_SCREEN_COLOR_HOMOG_POINTS
+            sh_common_constants.services.SET_SCREEN_COLOR_HOMOG_POINTS
         )
 
         # Local variable(s)
@@ -251,12 +227,6 @@ class GuiNode(Node):
     def sh_stop(self):
         rclpy_shutdown()
         self.ros_thread.wait()
-
-    ## Simple callback for the heartbeat message.
-    #  @param self The object pointer.
-    def heartbeat_callback(self):
-        self.heartbeat_msg.stamp = self.get_clock().now().to_msg()
-        self.heartbeat_pub.publish(self.heartbeat_msg)
 
     ## Repackages and sends out the requested mode type.
     #  @param self The object pointer.
