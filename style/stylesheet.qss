@@ -13,6 +13,15 @@ QPushButton, QComboBox {
     background-color: $COLOR_STD_COMPONENT_BG;
 }
 
+QScrollBar:vertical {
+    background: $COLOR_STD_COMPONENT_BG;
+    width: 30px;
+}
+
+QScrollBar::handle:vertical {
+    background: $COLOR_STD_COMPONENT_FG;
+}
+
 QLabel#red_lbl {
     color: $COLOR_TRAFFIC_LIGHT_RED;
 }
@@ -35,4 +44,25 @@ QSlider#yellow_slider {
 
 QSlider#green_slider {
     color: $COLOR_TRAFFIC_LIGHT_GRN;
+}
+
+SoundFilePlaybackPage QLineEdit {
+    color: $COLOR_STD_COMPONENT_FG;
+    font-family: MSGothic;
+    font-size: 34px;
+    font-weight: bold;
+}
+
+YouTubeVideoListing > QLabel {
+    color: $COLOR_STD_COMPONENT_FG;
+    font-family: MSGothic;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+YouTubeVideoListing QLabel#duration {
+    color: white;
+    background-color: black;
+    font-family: MSGothic;
+    font-size: 15px;
 }

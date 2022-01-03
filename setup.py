@@ -29,6 +29,8 @@ setup(
         ("lib/" + package_name + "/scripts", prefixed_files_in("scripts")),
         ("share/" + package_name + "/images", [
             "images/kyoto.png",
+            "images/search_youtube.png",
+            "images/clear_search.png",
         ]),
         ("share/" + package_name + "/images/traffic_lights", prefixed_files_in("images/traffic_lights")),
         ("share/" + package_name + "/style", prefixed_files_in("style")),

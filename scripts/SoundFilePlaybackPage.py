@@ -1,5 +1,8 @@
+from youtubesearchpython import VideosSearch
+
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QWidget, QFileDialog
+from PyQt5.QtGui import QIcon
 
 from scripts import GuiUtils
 from scripts.Ui_SoundFilePlaybackPage import Ui_SoundFilePlaybackPage
@@ -35,9 +38,22 @@ class SoundFilePlaybackPage(QWidget):
         # Basic UI/cosmetics
         #
 
-        # Build UI object and set layout shapes
+        # Build UI object
         self.ui = Ui_SoundFilePlaybackPage()
         self.ui.setupUi(self)
+
+        # Set YouTube search buttons
+        self.ui.clear_youtube_search_btn.setIcon(QIcon(GuiUtils.get_image_url("clear_search.png")))
+        self.ui.clear_youtube_search_btn.setIconSize(0.9 * self.ui.clear_youtube_search_btn.size())
+        self.ui.youtube_search_btn.setIcon(QIcon(GuiUtils.get_image_url("search_youtube.png")))
+        self.ui.youtube_search_btn.setIconSize(0.9 * self.ui.youtube_search_btn.size())
+
+        # Split page contents
+        GuiUtils.set_layout_stretches(
+            self.ui.overall_layout,
+            (0,50),
+            (1,50)
+        )
 
         # Set to "nothing"
         self.set_null_playback_status()

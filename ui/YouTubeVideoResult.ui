@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>YouTubeVideoResult</class>
+ <widget class="QWidget" name="youtube_video_result">
+  <layout class="QHBoxLayout" name="overall_layout">
+   <property name="alignment">
+    <set>AlignTop</set>
+   </property>
+   <item>
+    <widget class="YouTubeVideoListing" name="youtube_video_listing"/>
+   </item>
+   <item>
+    <widget class="QPushButton" name="queue_video_btn">
+     <property name="sizePolicy" >
+      <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>+</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>YouTubeVideoListing</class>
+   <header>scripts.YouTubeVideoListing</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
