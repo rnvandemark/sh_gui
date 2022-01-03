@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QWidget, QFileDialog
 from PyQt5.QtGui import QIcon
 
 from scripts import GuiUtils
+from scripts.YouTubeVideoResult import YouTubeVideoResult
 from scripts.Ui_SoundFilePlaybackPage import Ui_SoundFilePlaybackPage
 
 from sh_common_interfaces.msg import StringArr
@@ -65,9 +66,17 @@ class SoundFilePlaybackPage(QWidget):
         self.ui.play_pause_btn.clicked.connect(lambda: self.request_playback_command(PlaybackCommand.PAUSE if self.playing else PlaybackCommand.RESUME))
         self.ui.stop_btn.clicked.connect(lambda: self.request_playback_command(PlaybackCommand.STOP))
         self.ui.skip_btn.clicked.connect(lambda: self.request_playback_command(PlaybackCommand.SKIP))
+        self.ui.clear_youtube_search_btn.clicked.connect(self.clear_youtube_search)
+        self.ui.youtube_search_btn.clicked.connect(self.search_youtube)
 
         # Done
         self.show()
+
+    ## Clear the YouTube search text and the video results.
+    #  @param self The object pointer.
+    def purge_search_results(self):
+        for i in reversed(range(self.ui.search_results_layout.count())):
+            self.ui.search_results_layout.itemAt(i).widget().deleteLater()
 
     ## Emit a signal that passes along the requested command.
     #  @param self The object pointer.
@@ -97,6 +106,27 @@ class SoundFilePlaybackPage(QWidget):
         self.ui.sound_file_name.setText("")
         self.ui.playback_time.setText("--:-- / --:--")
         self.ui.sound_file_playback_status.setValue(0)
+
+    ## Clear the YouTube search text and the video results.
+    #  @param self The object pointer.
+    def clear_youtube_search(self):
+        self.ui.youtube_search_bar.setText("")
+        self.purge_search_results()
+
+    ## Clear the YouTube search text and the video results.
+    #  @param self The object pointer.
+    def search_youtube(self):
+        query = self.ui.youtube_search_bar.text()
+        if query:
+            self.purge_search_results()
+            search_results = VideosSearch(
+                query,
+                limit=GuiUtils.YOUTUBE_SEARCH_RESULT_COUNT
+            ).result()["result"]
+            for n in range(len(search_results)):
+                vid_result = YouTubeVideoResult(self.ui.search_results_scroll_area)
+                vid_result.ui.youtube_video_listing.populate(search_results[n])
+                self.ui.search_results_layout.addWidget(vid_result)
 
     ## Update UI elements given the current sound file playback status.
     #  @param self The object pointer.
