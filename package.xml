@@ -11,14 +11,14 @@
     <buildtool_depend>ament_python</buildtool_depend>
 
     <build_depend>rclpy</build_depend>
+    <build_depend>sensor_msgs</build_depend>
     <build_depend>sh_common_interfaces</build_depend>
     <build_depend>sh_sfp_interfaces</build_depend>
-    <build_depend>sh_scc_interfaces</build_depend>
 
     <exec_depend>rclpy</exec_depend>
+    <exec_depend>sensor_msgs</exec_depend>
     <exec_depend>sh_common_interfaces</exec_depend>
     <exec_depend>sh_sfp_interfaces</exec_depend>
-    <exec_depend>sh_scc_interfaces</exec_depend>
 
     <export>
         <build_type>ament_python</build_type>

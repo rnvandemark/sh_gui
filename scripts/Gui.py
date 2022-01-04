@@ -96,11 +96,7 @@ class Gui(QMainWindow):
         self.gui_controller.countdown_state_updated.connect(self.ui.morning_countdown_subpage.update_countdown_state)
         self.ui.wave_subpage.ui.slider.valueChanged.connect(self.handle_wave_update_period_update)
         self.gui_controller.wave_participant_responded.connect(self.gui_controller.add_wave_update_participant)
-        self.ui.corner_calibration_page.ui.reset_btn.released.connect(self.gui_controller.clear_selected_corners)
-        self.ui.corner_calibration_page.ui.request_calibration_btn.released.connect(self.handle_corner_calibration_request)
-        self.ui.corner_calibration_page.ui.proposed_corners_image.image_clicked.connect(self.handle_proposed_corner_selection)
-        self.ui.corner_calibration_page.ui.confirm_btn.released.connect(self.gui_controller.confirm_screen_calibration)
-        self.gui_controller.world_image_updated.connect(self.ui.corner_calibration_page.set_world_image)
+        self.gui_controller.screen_image_updated.connect(self.ui.corner_calibration_page.set_screen_image)
         self.gui_controller.left_color_peak_updated.connect(self.ui.corner_calibration_page.set_left_peak_image)
         self.gui_controller.right_color_peak_updated.connect(self.ui.corner_calibration_page.set_right_peak_image)
         self.ui.sound_file_playback_page.sf_playback_command_requested.connect(self.gui_controller.send_playback_command)
@@ -203,24 +199,3 @@ class Gui(QMainWindow):
         period_ms = 60000 * slider.value() // (slider.maximum() - slider.minimum() + 1)
         self.ui.wave_subpage.set_slider_label("{0} seconds".format(round(period_ms/1000, 3)))
         self.gui_controller.set_wave_update_period(period_ms)
-
-    ## The callback to changing the wave update period slider.
-    #  @param self The object pointer.
-    def handle_corner_calibration_request(self):
-        rv = self.gui_controller.request_screen_calibration(max_corners=100)
-        if rv is not None:
-            img, scaled_height, scaled_width = rv
-            self.ui.corner_calibration_page.ui.proposed_corners_image.set_from_ros_img(
-                img,
-                scaled_height,
-                scaled_width
-            )
-
-    ## The callback to the user clicking on the proposed homography points image.
-    #  @param self The object pointer.
-    #  @param x The click's x-coordinate.
-    #  @param y The click's y-coordinate.
-    def handle_proposed_corner_selection(self, x, y):
-        idx, corner = self.gui_controller.select_corner_near(x, y)
-        if (idx >= 0) and (idx <= 3):
-            self.ui.corner_calibration_page.corner_update_at(idx, corner)

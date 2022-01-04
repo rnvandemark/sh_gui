@@ -3,6 +3,7 @@ from PyQt5.QtCore import QThread
 from rclpy import spin as rclpy_spin, shutdown as rclpy_shutdown
 from rclpy.node import Node
 from std_msgs.msg import Empty, Float32, Header
+from sensor_msgs.msg import Image
 
 import sh_common_constants
 from sh_common.heartbeat_node import HeartbeatNode
@@ -10,9 +11,6 @@ from sh_common_interfaces.msg import ModeChange, ModeChangeRequest, \
     DeviceActivationChange, CountdownState, WaveParticipantLocation, \
     WaveUpdate, Float32Arr, Color, StringArr
 from sh_sfp_interfaces.msg import PlaybackCommand, PlaybackUpdate
-from sh_scc_interfaces.msg import ColorPeaksTelem
-from sh_scc_interfaces.srv import RequestScreenCalibration, \
-    SetScreenCalibrationPointsOfHomography
 
 MAX_AUX_DEVICE_COUNT = 32
 
@@ -139,9 +137,9 @@ class GuiNode(HeartbeatNode):
         )
 
         self.cap_peaks_telem_sub = self.create_subscription(
-            ColorPeaksTelem,
-            sh_common_constants.topics.COLOR_PEAKS_TELEM,
-            self.color_peaks_telem_callback,
+            Image,
+            sh_common_constants.topics.SCC_CAMERA_IMAGE,
+            self.scc_image_callback,
             1
         )
 
@@ -157,20 +155,6 @@ class GuiNode(HeartbeatNode):
             sh_common_constants.topics.PLAYBACK_UPDATES,
             self.playback_updates_callback,
             1
-        )
-
-        #
-        # ROS service clients
-        #
-
-        self.screen_calibration_request_cli = self.create_client(
-            RequestScreenCalibration,
-            sh_common_constants.services.REQUEST_SCREEN_COLOR_CALIBRTION
-        )
-
-        self.screen_calibration_set_homography_points_cli = self.create_client(
-            SetScreenCalibrationPointsOfHomography,
-            sh_common_constants.services.SET_SCREEN_COLOR_HOMOG_POINTS
         )
 
         # Local variable(s)
@@ -271,11 +255,11 @@ class GuiNode(HeartbeatNode):
     def participant_location_callback(self, msg):
         self.qt_parent.wave_participant_responded.emit(msg)
     
-    ## A handler for color peak process telemetry. Emits a signal containing the world preview image.
+    ## Emits a signal containing the captured screen image for the screen color coordinator.
     #  @param self The object pointer.
-    #  @param msg The ROS message with the telemetry info.
-    def color_peaks_telem_callback(self, msg):
-        self.qt_parent.world_image_updated.emit(msg.world_frame_image)
+    #  @param msg The ROS message of the screen image.
+    def scc_image_callback(self, msg):
+        self.qt_parent.screen_image_updated.emit(msg)
     
     ## Callback to update the left color peak.
     #  @param self The object pointer.
@@ -323,38 +307,6 @@ class GuiNode(HeartbeatNode):
     #  @param msg The collection of intensities with their corresponding participant ID's.
     def send_wave_update(self, msg):
         self.wave_update_pub.publish(msg)
-    
-    ## Issue a service request to get currently isolated corners.
-    #  @param self The object pointer.
-    #  @param max_corners The max corners to find.
-    #  @param quality_level The minimal acceptable quality of corners.
-    #  @param min_dist Minimum possible Euclidean pixel distance between found corners.
-    #  @return The response to the ROS service request.
-    def request_screen_calibration(self, max_corners, quality_level, min_dist):
-        req = RequestScreenCalibration.Request()
-        req.max_corners = max_corners
-        req.quality_level = float(quality_level)
-        req.min_dist = float(min_dist)
-        req.do_blur = True
-        req.kh = 5
-        req.kw = 5
-        return self.screen_calibration_request_cli.call(req)
-    
-    ## Attempt to use the four selected points for screen calibration homography.
-    #  @param self The object pointer.
-    #  @param pts The four ROS points of homography.
-    #  @return The response to the ROS service request.
-    def confirm_screen_calibration(self, pts):
-        req = SetScreenCalibrationPointsOfHomography.Request()
-        req.pts_of_homog = pts
-        result = self.screen_calibration_set_homography_points_cli.call(req)
-        if result.successful:
-            self.log_info(
-                "Homog pts: {0}, {1}, {2}, {3}".format(*["[x={0},y={1}]".format(p.x,p.y) for p in pts])
-            )
-        else:
-            self.log_err("Failed to confirm corner calibration.")
-        return result
 
     ## Publish the given ROS msg playback command.
     #  @param self The object pointer.

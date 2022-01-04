@@ -1,6 +1,5 @@
 from sys import argv as sargv
 from math import cos, pi
-from scipy.spatial import cKDTree
 
 from PyQt5.QtCore import QObject, QTimer, pyqtSignal
 
@@ -92,58 +91,6 @@ class ActiveModeData(object):
         self.mode = mode
         self.data = None
 
-## Data needed to calibrate the corners used for homography and calculating color peaks.
-class CornerCalibrationData(object):
-
-    ## The constructor.
-    #  @param self The object pointer.
-    def __init__(self):
-        self.height_factor = None
-        self.width_factor = None
-        self.detected = None
-        self.tree = None
-        self.clear_selected()
-
-    ## Clear any selected points.
-    #  @param self The object pointer.
-    def clear_selected(self):
-        self.selected = [None] * 4
-
-    ## Set the detected feature points of the current view and create their binary search tree.
-    #  @param self The object pointer.
-    #  @param size_original The original size of the image, as received by the service call.
-    #  @param size_new The size of the image after resizing for display in the GUI.
-    #  @param points The detected feature points.
-    def set_detected(self, size_original, size_new, points):
-        self.height_factor = size_original[0] / size_new[0]
-        self.width_factor = size_original[1] / size_new[1]
-        self.detected = points
-        self.tree = cKDTree([(p.x,p.y) for p in self.detected])
-
-    ## If more corners can be selected, find the point closest to the click at [x,y].
-    #  @param self The object pointer.
-    #  @param self x The click's x-coordinate.
-    #  @param self y The click's y-coordinate.
-    #  @param self n_jobs How many parallel workers to create when searching, defaults to the
-    #  number of available CPU's.
-    #  @return The index of the corner set [1,4] and the ROS Point msg describing the position.
-    def select_next(self, x, y, n_jobs=-1):
-        idx = -1
-        corner = None
-        if self.detected is not None:
-            for i in range(4):
-                if self.selected[i] == None:
-                    idx = i
-                    break
-            if idx != -1:
-                _, ii = self.tree.query((x * self.width_factor, y * self.height_factor),
-                                        k=1,
-                                        n_jobs=n_jobs
-                )
-                corner = self.detected[ii]
-                self.selected[idx] = corner
-        return idx, corner
-
 ## A controller for the smart home hub node, and a utility for the GUI as well.
 class GuiController(QObject):
 
@@ -157,8 +104,8 @@ class GuiController(QObject):
     countdown_state_updated = pyqtSignal(CountdownState)
     ## Emits a wave participant response
     wave_participant_responded = pyqtSignal(WaveParticipantLocation)
-    ## Emits the homography's world image telemetry
-    world_image_updated = pyqtSignal(Image)
+    ## Emits the screen color coordinator's captured image of the screen
+    screen_image_updated = pyqtSignal(Image)
     ## Emits the calculated color peak of the left portion of the region
     left_color_peak_updated = pyqtSignal(Color)
     ## Emits the calculated color peak of the right portion of the region
@@ -176,7 +123,6 @@ class GuiController(QObject):
 
         # Local variables
         self.active_mode_data = ActiveModeData()
-        self.corner_calibration_data = CornerCalibrationData()
 
         self.one_hertz_timer = QTimer(parent=self)
         self.wave_update_timer = QTimer(parent=self)
@@ -320,57 +266,6 @@ class GuiController(QObject):
         if self.active_mode_data.mode != ModeChange.WAVE: return
         if type(self.active_mode_data.data) is not WaveUpdateData: return
         self.active_mode_data.data.period = period
-
-    ## Request to start a new screen calibration by getting the detected feature points. Use
-    #  the default parameters specified by that controller unless specified otherwise in this
-    #  function's arguments.
-    #  @param self The object pointer.
-    #  @param max_corners The max corners to find.
-    #  @param quality_level The minimal acceptable quality of corners.
-    #  @param min_dist Minimum possible Euclidean pixel distance between found corners.
-    #  @return The image with each found feature point marked.
-    def request_screen_calibration(self, max_corners=-1, quality_level=-1, min_dist=-1):
-        result = self.gui_node.request_screen_calibration(max_corners,
-                                                          quality_level,
-                                                          min_dist)
-        if result.corners_found:
-            scaled_width = GuiUtils.COLOR_PEAK_COLOR_COORDINATOR_IMAGE_WIDTH
-            scaled_height = GuiUtils.COLOR_PEAK_COLOR_COORDINATOR_IMAGE_HEIGHT
-            self.corner_calibration_data.set_detected(
-                (result.marked_image.height, result.marked_image.width),
-                (scaled_height, scaled_width),
-                result.corner_positions
-            )
-            return result.marked_image, scaled_height, scaled_width
-        else:
-            self.gui_node.log_err("Corner detection pipeline failed.")
-            return None
-
-    ## Clear all selected screen calibration corners.
-    #  @param self The object pointer.
-    def clear_selected_corners(self):
-        self.corner_calibration_data.clear_selected()
-
-    ## Handle a click that is attempting to selected a screen calibration corner.
-    #  @param self The object pointer.
-    #  @param self x The click's x-coordinate.
-    #  @param self y The click's y-coordinate.
-    #  @return The index of the corner set [1,4] and the ROS Point msg describing the position.
-    def select_corner_near(self, x, y):
-        idx, corner = self.corner_calibration_data.select_next(x,y)
-        if idx != -1:
-            self.gui_node.log_debug(
-                "Proposed image click at [{0},{1}], got [{2},{3}]".format(
-                    x, y, corner.x, corner.y
-            ))
-        return idx, corner
-
-    ## Attempt screen calibration homography given the four currently selected corners.
-    #  @param self The object pointer.
-    #  @return Whether or not the request to start the routine was successful.
-    def confirm_screen_calibration(self):
-        result = self.gui_node.confirm_screen_calibration(self.corner_calibration_data.selected)
-        return result.successful
 
     ## Helper function to pass the sound file playback command to the ROS node interface.
     #  @param self The object pointer.

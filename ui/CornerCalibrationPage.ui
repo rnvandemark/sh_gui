@@ -13,114 +13,7 @@
     <number>25</number>
    </property>
    <item row="0" column="0" colspan="2">
-    <widget class="QPushButton" name="request_calibration_btn">
-     <property name="text">
-      <string>Request Calibration</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel">
-     <property name="text">
-      <string>Top Left</string>
-     </property>
-     <property name="alignment">
-      <set>AlignHCenter|AlignRight</set>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel">
-     <property name="text">
-      <string>Top Right</string>
-     </property>
-     <property name="alignment">
-      <set>AlignHCenter|AlignRight</set>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel">
-     <property name="text">
-      <string>Bottom Left</string>
-     </property>
-     <property name="alignment">
-      <set>AlignHCenter|AlignRight</set>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0">
-    <widget class="QLabel">
-     <property name="text">
-      <string>Bottom Right</string>
-     </property>
-     <property name="alignment">
-      <set>AlignHCenter|AlignRight</set>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QLabel" name="tl_lbl">
-     <property name="alignment">
-      <set>AlignHCenter|AlignLeft</set>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QLabel" name="tr_lbl">
-     <property name="alignment">
-      <set>AlignHCenter|AlignLeft</set>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLabel" name="bl_lbl">
-     <property name="alignment">
-      <set>AlignHCenter|AlignLeft</set>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1">
-    <widget class="QLabel" name="br_lbl">
-     <property name="alignment">
-      <set>AlignHCenter|AlignLeft</set>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QPushButton" name="reset_btn">
-     <property name="text">
-      <string>Reset</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="1">
-    <widget class="QPushButton" name="confirm_btn">
-     <property name="text">
-      <string>Confirm!</string>
-     </property>
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="2" rowspan="6">
-    <widget class="QWidget" name="proposed_corners_image_container">
-     <property name="fixedSize">
-      <size>
-       <width>800</width>
-       <height>600</height>
-      </size>
-     </property>
-     <widget class="ProposedCornersImage" name="proposed_corners_image">
-      <property name="alignment">
-       <set>AlignCenter</set>
-      </property>
-     </widget>
-    </widget>
-   </item>
-   <item row="0" column="3" rowspan="6">
-    <widget class="QLabel" name="world_image">
+    <widget class="QLabel" name="screen_image">
      <property name="fixedSize">
       <size>
        <width>400</width>
@@ -132,10 +25,7 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="3">
-    <widget class="QWidget" name="peak_image_container">
-     <layout class="QHBoxLayout" name="peak_image_layout">
-      <item column="0">
+      <item row="1" column="0">
        <widget class="QLabel" name="left_peak_image">
         <property name="fixedSize">
          <size>
@@ -145,7 +35,7 @@
         </property>
        </widget>
       </item>
-      <item column="2">
+      <item row="1" column="1">
        <widget class="QLabel" name="right_peak_image">
         <property name="fixedSize">
          <size>
@@ -155,16 +45,9 @@
         </property>
        </widget>
       </item>
-     </layout>
-    </widget>
-   </item>
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-    <class>ProposedCornersImage</class>
-    <header>scripts.ProposedCornersImage</header>
-  </customwidget>
  </customwidgets>
  <resources/>
  <connections/>
