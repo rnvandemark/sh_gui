@@ -102,7 +102,7 @@ beautiful ;)</string>
        <widget class="QWidget" name="follow_room_sound_subpage"/>
        <widget class="LabeledSliderSubpage" name="wave_subpage"/>
       </widget>
-      <widget class="CornerCalibrationPage" name="corner_calibration_page"/>
+      <widget class="ScreenColorCoordination" name="screen_color_coordination_page"/>
       <widget class="SoundFilePlaybackPage" name="sound_file_playback_page"/>
      </widget>
     </item>
@@ -123,8 +123,8 @@ beautiful ;)</string>
     <header>scripts.FollowHubSubpage</header>
   </customwidget>
   <customwidget>
-    <class>CornerCalibrationPage</class>
-    <header>scripts.CornerCalibrationPage</header>
+    <class>ScreenColorCoordination</class>
+    <header>scripts.ScreenColorCoordination</header>
   </customwidget>
   <customwidget>
     <class>SoundFilePlaybackPage</class>

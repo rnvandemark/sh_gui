@@ -1,19 +1,19 @@
 from PyQt5.QtWidgets import QWidget
 
 from scripts import GuiUtils
-from scripts.Ui_CornerCalibrationPage import Ui_CornerCalibrationPage
+from scripts.Ui_ScreenColorCoordination import Ui_ScreenColorCoordination
 
 ## The page encapsulating the screen homography calibration and color preview.
-class CornerCalibrationPage(QWidget):
+class ScreenColorCoordination(QWidget):
 
     ## The constructor.
     #  @param self The object pointer.
     #  @param parent This object's optional Qt parent.
     def __init__(self, parent=None):
-        super(CornerCalibrationPage, self).__init__(parent)
+        super(ScreenColorCoordination, self).__init__(parent)
 
         # Build UI object
-        self.ui = Ui_CornerCalibrationPage()
+        self.ui = Ui_ScreenColorCoordination()
         self.ui.setupUi(self)
 
         # Done

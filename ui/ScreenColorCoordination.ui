@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CornerCalibrationPage</class>
- <widget class="QWidget" name="corner_calibration_page">
+ <class>ScreenColorCoordination</class>
+ <widget class="QWidget" name="screen_color_coordination_page">
   <property name="fixedSize">
    <size>
     <width>1800</width>
