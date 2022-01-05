@@ -7,6 +7,7 @@ from rclpy import init as rclpy_init
 from sensor_msgs.msg import Image
 from sh_common_interfaces.msg import ModeChange, CountdownState, WaveUpdate, \
     WaveParticipantLocation, Color, Float32Arr
+from sh_scc_interfaces.msg import ColorPeaksTelem
 from sh_sfp_interfaces.msg import PlaybackUpdate
 
 from scripts import GuiUtils
@@ -104,12 +105,8 @@ class GuiController(QObject):
     countdown_state_updated = pyqtSignal(CountdownState)
     ## Emits a wave participant response
     wave_participant_responded = pyqtSignal(WaveParticipantLocation)
-    ## Emits the screen color coordinator's captured image of the screen
-    screen_image_updated = pyqtSignal(Image)
-    ## Emits the calculated color peak of the left portion of the region
-    left_color_peak_updated = pyqtSignal(Color)
-    ## Emits the calculated color peak of the right portion of the region
-    right_color_peak_updated = pyqtSignal(Color)
+    ## Emits the screen color coordinator's telemetry
+    scc_telemetry_updated = pyqtSignal(ColorPeaksTelem)
     ## Emits updates on the last set of playback frequencies calculated
     playback_frequencies_updated = pyqtSignal(Float32Arr)
     ## Emits updates on the current sound file playback status

@@ -1,5 +1,4 @@
 from PyQt5.QtWidgets import QWidget
-from PyQt5.QtGui import QPalette, QPixmap, QColor
 
 from scripts import GuiUtils
 from scripts.Ui_CornerCalibrationPage import Ui_CornerCalibrationPage
@@ -20,12 +19,6 @@ class CornerCalibrationPage(QWidget):
         # Done
         self.show()
 
-    ## Update the captured image of the screen.
-    #  @param self The object pointer.
-    #  @param corner A ROS msg image.
-    def set_screen_image(self, msg):
-        self.ui.screen_image.setPixmap(GuiUtils.get_qpixmap_from_rosimg(msg))
-
     ## Fill the given label to the given color.
     #  @param self The object pointer.
     #  @param lbl The label to paint.
@@ -34,14 +27,15 @@ class CornerCalibrationPage(QWidget):
         r,g,b = color.channels
         GuiUtils.color_label(lbl, r, g, b)
 
-    ## Fill the left color peak preview image to the given color.
+    ## Update the SCC telemetry on the screen
     #  @param self The object pointer.
-    #  @param color The ROS msg color.
-    def set_left_peak_image(self, color):
-        self.set_generic_peak_image(self.ui.left_peak_image, color)
+    #  @param corner A ROS color peak telemetry message.
+    def update_scc_telemetry(self, msg):
+        img = msg.image
+        if not img.encoding:
+            img.encoding = "bgr8"
+        self.ui.screen_image.setFixedSize(img.width, img.height)
+        self.ui.screen_image.setPixmap(GuiUtils.get_qpixmap_from_rosimg(img))
 
-    ## Fill the left color peak preview image to the given color.
-    #  @param self The object pointer.
-    #  @param color The ROS msg color.
-    def set_right_peak_image(self, color):
-        self.set_generic_peak_image(self.ui.right_peak_image, color)
+        self.set_generic_peak_image(self.ui.left_peak_image, msg.left_current_peak)
+        self.set_generic_peak_image(self.ui.right_peak_image, msg.right_current_peak)

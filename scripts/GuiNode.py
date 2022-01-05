@@ -3,13 +3,13 @@ from PyQt5.QtCore import QThread
 from rclpy import spin as rclpy_spin, shutdown as rclpy_shutdown
 from rclpy.node import Node
 from std_msgs.msg import Empty, Float32, Header
-from sensor_msgs.msg import Image
 
 import sh_common_constants
 from sh_common.heartbeat_node import HeartbeatNode
 from sh_common_interfaces.msg import ModeChange, ModeChangeRequest, \
     DeviceActivationChange, CountdownState, WaveParticipantLocation, \
     WaveUpdate, Float32Arr, Color, StringArr
+from sh_scc_interfaces.msg import ColorPeaksTelem
 from sh_sfp_interfaces.msg import PlaybackCommand, PlaybackUpdate
 
 MAX_AUX_DEVICE_COUNT = 32
@@ -122,24 +122,10 @@ class GuiNode(HeartbeatNode):
             MAX_AUX_DEVICE_COUNT
         )
 
-        self.color_peak_left_sub = self.create_subscription(
-            Color,
-            sh_common_constants.topics.LEFT_COLOR_PEAK,
-            self.left_color_peak_callback,
-            1
-        )
-
-        self.color_peak_right_sub = self.create_subscription(
-            Color,
-            sh_common_constants.topics.RIGHT_COLOR_PEAK,
-            self.right_color_peak_callback,
-            1
-        )
-
-        self.cap_peaks_telem_sub = self.create_subscription(
-            Image,
-            sh_common_constants.topics.SCC_CAMERA_IMAGE,
-            self.scc_image_callback,
+        self.color_peaks_telem_sub = self.create_subscription(
+            ColorPeaksTelem,
+            sh_common_constants.topics.COLOR_PEAKS_TELEM,
+            self.scc_telemetry_callback,
             1
         )
 
@@ -255,23 +241,11 @@ class GuiNode(HeartbeatNode):
     def participant_location_callback(self, msg):
         self.qt_parent.wave_participant_responded.emit(msg)
     
-    ## Emits a signal containing the captured screen image for the screen color coordinator.
+    ## Callback to update the telemetry from the color preak calculation pipeline.
     #  @param self The object pointer.
-    #  @param msg The ROS message of the screen image.
-    def scc_image_callback(self, msg):
-        self.qt_parent.screen_image_updated.emit(msg)
-    
-    ## Callback to update the left color peak.
-    #  @param self The object pointer.
-    #  @param msg The ROS color message.
-    def left_color_peak_callback(self, msg):
-        self.qt_parent.left_color_peak_updated.emit(msg)
-    
-    ## Callback to update the right color peak.
-    #  @param self The object pointer.
-    #  @param msg The ROS color message.
-    def right_color_peak_callback(self, msg):
-        self.qt_parent.right_color_peak_updated.emit(msg)
+    #  @param msg The ROS color peak calculation telemetry message.
+    def scc_telemetry_callback(self, msg):
+        self.qt_parent.scc_telemetry_updated.emit(msg)
     
 #    ## A helper function to package a device (in)activation request.
 #    #  @param self The object pointer.
