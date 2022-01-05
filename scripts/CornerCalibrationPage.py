@@ -39,3 +39,8 @@ class CornerCalibrationPage(QWidget):
 
         self.set_generic_peak_image(self.ui.left_peak_image, msg.left_current_peak)
         self.set_generic_peak_image(self.ui.right_peak_image, msg.right_current_peak)
+
+        self.ui.kmeans_clusters_val.setText(str(msg.kmeans_k))
+        self.ui.kmeans_attempts_val.setText(str(msg.kmeans_attempts))
+        self.set_generic_peak_image(self.ui.instantaneous_left_color_peak_val, msg.left_instantaneous_best_peak)
+        self.set_generic_peak_image(self.ui.instantaneous_right_color_peak_val, msg.right_instantaneous_best_peak)

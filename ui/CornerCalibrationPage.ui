@@ -12,7 +12,7 @@
    <property name="alignment">
     <set>AlignCenter</set>
    </property>
-   <item row="0" column="0">
+   <item row="0" column="0" rowspan="4">
     <layout class="QHBoxLayout" name="preview_layout">
      <item>
       <widget class="QLabel" name="left_peak_image">
@@ -54,6 +54,74 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLabel" name="kmeans_clusters_lbl">
+     <property name="text">
+      <string>KMeans clusters: </string>
+     </property>
+     <property name="alignment">
+      <set>AlignVCenter|AlignRight</set>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QLabel" name="kmeans_clusters_val">
+     <property name="alignment">
+      <set>AlignVCenter|AlignLeft</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLabel" name="kmeans_attempts_lbl">
+     <property name="text">
+      <string>KMeans attempts: </string>
+     </property>
+     <property name="alignment">
+      <set>AlignVCenter|AlignRight</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QLabel" name="kmeans_attempts_val">
+     <property name="alignment">
+      <set>AlignVCenter|AlignLeft</set>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QLabel" name="instantaneous_left_color_peak_lbl">
+     <property name="text">
+      <string>Instant. Left Color: </string>
+     </property>
+     <property name="alignment">
+      <set>AlignVCenter|AlignRight</set>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="QLabel" name="instantaneous_left_color_peak_val">
+     <property name="alignment">
+      <set>AlignVCenter|AlignLeft</set>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLabel" name="instantaneous_right_color_peak_lbl">
+     <property name="text">
+      <string>Instant. Right Color: </string>
+     </property>
+     <property name="alignment">
+      <set>AlignVCenter|AlignRight</set>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2">
+    <widget class="QLabel" name="instantaneous_right_color_peak_val">
+     <property name="alignment">
+      <set>AlignVCenter|AlignLeft</set>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
