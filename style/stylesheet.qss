@@ -53,10 +53,17 @@ SoundFilePlaybackPage QLineEdit {
     font-weight: bold;
 }
 
-YouTubeVideoListing > QLabel {
+YouTubeVideoResult > YouTubeVideoListing > QLabel {
     color: $COLOR_STD_COMPONENT_FG;
     font-family: MSGothic;
     font-size: 24px;
+    font-weight: bold;
+}
+
+QueuedYouTubeVideo > YouTubeVideoListing > QLabel {
+    color: $COLOR_STD_COMPONENT_FG;
+    font-family: MSGothic;
+    font-size: 15px;
     font-weight: bold;
 }
 
@@ -65,4 +72,11 @@ YouTubeVideoListing QLabel#duration {
     background-color: black;
     font-family: MSGothic;
     font-size: 15px;
+}
+
+QueuedYouTubeVideo QLabel#download_percent_lbl {
+    color: $COLOR_STD_COMPONENT_FG;
+    font-family: MSGothic;
+    font-size: 15px;
+    font-weight: bold;
 }

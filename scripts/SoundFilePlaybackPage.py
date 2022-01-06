@@ -7,6 +7,7 @@ from PyQt5.QtGui import QIcon
 from scripts import GuiUtils
 from scripts.YouTubeVideoListing import YouTubeVideoListing
 from scripts.YouTubeVideoResult import YouTubeVideoResult
+from scripts.QueuedYouTubeVideo import QueuedYouTubeVideo
 from scripts.Ui_SoundFilePlaybackPage import Ui_SoundFilePlaybackPage
 
 from sh_common_interfaces.msg import StringArr
@@ -35,6 +36,7 @@ class SoundFilePlaybackPage(QWidget):
         #
 
         self.playing = True
+        self.queued_youtube_videos = {}
 
         #
         # Basic UI/cosmetics
@@ -129,6 +131,21 @@ class SoundFilePlaybackPage(QWidget):
                 vid_result.ui.youtube_video_listing.populate(search_results[n])
                 vid_result.queue_requested.connect(self.audio_download_queue_requested)
                 self.ui.search_results_layout.addWidget(vid_result)
+
+    ## 
+    #  @param self The object pointer.
+    #  @param video_listing
+    def queue_video(self, video_listing):
+        queued_vid = QueuedYouTubeVideo(self.ui.queued_videos_scroll_area)
+        queued_vid.ui.youtube_video_listing.populate(video_listing.result_dict)
+        self.ui.queued_videos_layout.addWidget(queued_vid)
+        self.queued_youtube_videos[video_listing.get_video_id()] = queued_vid
+
+    ## 
+    #  @param self The object pointer.
+    #  @param video_listing
+    def update_download_completion(self, video_id, completion):
+        self.queued_youtube_videos[video_id].update_percent_complete(completion)
 
     ## Update UI elements given the current sound file playback status.
     #  @param self The object pointer.

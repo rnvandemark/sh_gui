@@ -12,6 +12,7 @@ from sh_sfp_interfaces.msg import PlaybackUpdate
 
 from scripts import GuiUtils
 from scripts.GuiNode import GuiNode
+from scripts.YouTubeVideoListing import YouTubeVideoListing
 
 #
 # Constants
@@ -83,9 +84,9 @@ class AudioDownloadManager(object):
     ## The constructor.
     #  @param node
     #  @param self The object pointer.
-    def __init__(self, node):
+    def __init__(self, controller):
         self.video_id = None
-        self.node = node
+        self.controller = controller
         self.send_audio_download_goal_future = None
         self.audio_download_result_future = None
 
@@ -94,11 +95,15 @@ class AudioDownloadManager(object):
     #  @param video_id
     def send_goal(self, video_id):
         self.video_id = video_id
-        self.send_audio_download_goal_future = self.node.queue_youtube_video_for_download(
+        self.send_audio_download_goal_future = self.controller.gui_node.queue_youtube_video_for_download(
             self.handle_feedback,
             self.video_id
         )
-        self.send_audio_download_goal_future.add_done_callback(self.handle_request_response)
+        if self.send_audio_download_goal_future:
+            self.send_audio_download_goal_future.add_done_callback(self.handle_request_response)
+            return True
+        else:
+            return False
 
     ## 
     #  @param self The object pointer.
@@ -106,7 +111,9 @@ class AudioDownloadManager(object):
     def handle_request_response(self, future):
         goal_handle = future.result()
         if not goal_handle.accepted:
-            self.node.log_error("Audio download request was rejected: '{0}'".format(self.video_id))
+            self.controller.gui_node.log_err(
+                "Audio download request was rejected: '{0}'".format(self.video_id)
+            )
         else:
             self.audio_download_result_future = goal_handle.get_result_async()
             self.audio_download_result_future.add_done_callback(self.handle_result)
@@ -115,14 +122,20 @@ class AudioDownloadManager(object):
     #  @param self The object pointer.
     #  @param feedback
     def handle_feedback(self, feedback):
-        self.node.log_debug("Download of '{0}' {1}% complete.".format(self.video_id, feedback.feedback.completion))
+        completion = feedback.feedback.completion
+        self.controller.audio_download_completion_updated.emit(self.video_id, completion)
+        self.controller.gui_node.log_debug(
+            "Download of '{0}' {1}% complete.".format(self.video_id, completion)
+        )
 
     ## 
     #  @param self The object pointer.
     #  @param future
     def handle_result(self, future):
         result = future.result().result
-        self.node.log_info("Video with id '{0}' saved locally to {1}".format(self.video_id, result.local_url))
+        self.controller.gui_node.log_info(
+            "Video with id '{0}' saved locally to {1}".format(self.video_id, result.local_url)
+        )
 
 ## Container to identify the current mode and any data used to support this mode.
 class ActiveModeData(object):
@@ -154,6 +167,10 @@ class GuiController(QObject):
     wave_participant_responded = pyqtSignal(WaveParticipantLocation)
     ## Emits the screen color coordinator's telemetry
     scc_telemetry_updated = pyqtSignal(ColorPeaksTelem)
+    ## Emits a signal that a video reuested to be downloaded was confirmed
+    audio_download_queue_confirmed = pyqtSignal(YouTubeVideoListing)
+    ## Emits the audio download's latest progress for the corresponding video
+    audio_download_completion_updated = pyqtSignal(str, float)
     ## Emits updates on the last set of playback frequencies calculated
     playback_frequencies_updated = pyqtSignal(Float32Arr)
     ## Emits updates on the current sound file playback status
@@ -171,6 +188,8 @@ class GuiController(QObject):
         self.one_hertz_timer = QTimer(parent=self)
         self.wave_update_timer = QTimer(parent=self)
 
+        self.audio_download_managers = {}
+
         # Make Qt connections
         self.one_hertz_timer.timeout.connect(self.check_for_countdown_state_update)
         self.wave_update_timer.timeout.connect(self.wave_mode_update)
@@ -178,9 +197,6 @@ class GuiController(QObject):
         # Init ROS and create node interface
         rclpy_init(args=sargv)
         self.gui_node = GuiNode(self)
-
-        # Create other local variables
-        self.audio_download_managers = {}
 
     ## Start all peripherals.
     #  @param self The object pointer.
@@ -327,6 +343,9 @@ class GuiController(QObject):
     def queue_youtube_video_for_download(self, video_listing):
         vid_id = video_listing.get_video_id()
         if vid_id:
-            audio_download_manager = AudioDownloadManager(self.gui_node)
-            audio_download_manager.send_goal(vid_id)
-            self.audio_download_managers[vid_id] = audio_download_manager
+            audio_download_manager = AudioDownloadManager(self)
+            if audio_download_manager.send_goal(vid_id):
+                self.audio_download_queue_confirmed.emit(video_listing)
+                self.audio_download_managers[vid_id] = audio_download_manager
+            else:
+                self.gui_node.log_err("Failed to send audio download request.")

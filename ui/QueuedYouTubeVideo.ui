@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>QueuedYouTubeVideo</class>
+ <widget class="QWidget" name="queued_youtube_video">
+  <layout class="QVBoxLayout" name="overall_layout">
+   <property name="alignment">
+    <set>AlignTop</set>
+   </property>
+   <item>
+    <widget class="YouTubeVideoListing" name="youtube_video_listing"/>
+   </item>
+   <item>
+    <widget class="QWidget" name="progress_bar">
+     <layout class="QHBoxLayout" name="overall_layout">
+      <property name="alignment">
+       <set>AlignCenter</set>
+      </property>
+      <item>
+       <widget class="QSlider" name="download_percent_sli">
+        <property name="enabled">
+         <bool>Horizontal</bool>
+        </property>
+        <property name="orientation">
+         <set>Horizontal</set>
+        </property>
+        <property name="minimum">
+         <number>0</number>
+        </property>
+        <property name="maximum">
+         <number>10000</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="download_percent_lbl"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>YouTubeVideoListing</class>
+   <header>scripts.YouTubeVideoListing</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
