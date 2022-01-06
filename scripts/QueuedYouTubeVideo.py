@@ -21,10 +21,10 @@ class QueuedYouTubeVideo(QWidget):
         # Done
         self.show()
 
-    ## 
+    ## Update the slider/progress bar and the corresponding percentage label.
     #  @param self The object pointer.
-    #  @param completion
+    #  @param completion The percent complete in the range [0,100].
     def update_percent_complete(self, completion):
-        # Slider is in the range[0,10000], multiply the percent ([0,100]) for hundredth precision
+        # Slider is in the range[0,10000], multiply the percent for hundredth precision
         self.ui.download_percent_sli.setValue(int(completion*100))
         self.ui.download_percent_lbl.setText("{0}%".format(completion))

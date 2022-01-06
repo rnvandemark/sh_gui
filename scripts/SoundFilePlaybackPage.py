@@ -1,7 +1,7 @@
 from youtubesearchpython import VideosSearch
 
 from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import QWidget, QFileDialog
+from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QIcon
 
 from scripts import GuiUtils
@@ -10,7 +10,6 @@ from scripts.YouTubeVideoResult import YouTubeVideoResult
 from scripts.QueuedYouTubeVideo import QueuedYouTubeVideo
 from scripts.Ui_SoundFilePlaybackPage import Ui_SoundFilePlaybackPage
 
-from sh_common_interfaces.msg import StringArr
 from sh_sfp_interfaces.msg import PlaybackCommand, PlaybackUpdate
 
 ## The class encapsulating the display for the app's contents.
@@ -20,7 +19,7 @@ class SoundFilePlaybackPage(QWidget):
     # Qt Signal(s)
     #
 
-    ## 
+    ## Emits a YouTube video listing that the user reuested to download
     audio_download_queue_requested = pyqtSignal(YouTubeVideoListing)
     ## Emits a soundfile playback command of any type.
     sf_playback_command_requested = pyqtSignal(PlaybackCommand)
@@ -89,20 +88,6 @@ class SoundFilePlaybackPage(QWidget):
         msg.cmd = cmd
         self.sf_playback_command_requested.emit(msg)
 
-#    ## Open a file dialog to queue one or more sound files for playback.
-#    #  @param self The object pointer.
-#    def load_sound_files(self):
-#        sound_file_paths, _ = QFileDialog.getOpenFileNames(
-#            self,
-#            "Select one or more sound files to open",
-#            "/home",
-#            "MP3s or WAVs (*.mp3 *.wav)"
-#        )
-#        if len(sound_file_paths) > 0:
-#            sound_files_msg = StringArr()
-#            sound_files_msg.data = sound_file_paths
-#            self.sf_files_requested.emit(sound_files_msg)
-
     ## Update UI elements to "nothing".
     #  @param self The object pointer.
     def set_null_playback_status(self):
@@ -132,18 +117,19 @@ class SoundFilePlaybackPage(QWidget):
                 vid_result.queue_requested.connect(self.audio_download_queue_requested)
                 self.ui.search_results_layout.addWidget(vid_result)
 
-    ## 
+    ## Queue a video that is confirmed able to start downloading.
     #  @param self The object pointer.
-    #  @param video_listing
+    #  @param video_listing The YouTube video listing object.
     def queue_video(self, video_listing):
         queued_vid = QueuedYouTubeVideo(self.ui.queued_videos_scroll_area)
         queued_vid.ui.youtube_video_listing.populate(video_listing.result_dict)
         self.ui.queued_videos_layout.addWidget(queued_vid)
         self.queued_youtube_videos[video_listing.get_video_id()] = queued_vid
 
-    ## 
+    ## Received an update on a video's download by its ID.
     #  @param self The object pointer.
-    #  @param video_listing
+    #  @param video_id The unique ID of the YouTube video.
+    #  @param completion The percent complete in the range [0,100].
     def update_download_completion(self, video_id, completion):
         self.queued_youtube_videos[video_id].update_percent_complete(completion)
 

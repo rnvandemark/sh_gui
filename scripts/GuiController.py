@@ -4,9 +4,8 @@ from math import cos, pi
 from PyQt5.QtCore import QObject, QTimer, pyqtSignal
 
 from rclpy import init as rclpy_init
-from sensor_msgs.msg import Image
 from sh_common_interfaces.msg import ModeChange, CountdownState, WaveUpdate, \
-    WaveParticipantLocation, Color, Float32Arr
+    WaveParticipantLocation, Float32Arr
 from sh_scc_interfaces.msg import ColorPeaksTelem
 from sh_sfp_interfaces.msg import PlaybackUpdate
 
@@ -78,21 +77,21 @@ class WaveUpdateData(object):
             self.location -= _2PI
         return msg
 
-## 
+## A class used to pipe data back and forth from the audio download action server.
 class AudioDownloadManager(object):
 
     ## The constructor.
-    #  @param node
     #  @param self The object pointer.
+    #  @param controller The GUI controller.
     def __init__(self, controller):
         self.video_id = None
         self.controller = controller
         self.send_audio_download_goal_future = None
         self.audio_download_result_future = None
 
-    ## 
+    ## Send a goal to the action server to start a download.
     #  @param self The object pointer.
-    #  @param video_id
+    #  @param video_id The unique video ID according to YouTube.
     def send_goal(self, video_id):
         self.video_id = video_id
         self.send_audio_download_goal_future = self.controller.gui_node.queue_youtube_video_for_download(
@@ -105,9 +104,9 @@ class AudioDownloadManager(object):
         else:
             return False
 
-    ## 
+    ## Callback for the download request's result (accepted or rejected?).
     #  @param self The object pointer.
-    #  @param future
+    #  @param future The finished future object containing the response.
     def handle_request_response(self, future):
         goal_handle = future.result()
         if not goal_handle.accepted:
@@ -118,9 +117,9 @@ class AudioDownloadManager(object):
             self.audio_download_result_future = goal_handle.get_result_async()
             self.audio_download_result_future.add_done_callback(self.handle_result)
 
-    ## 
+    ## Callback for a download's feedback updates.
     #  @param self The object pointer.
-    #  @param feedback
+    #  @param feedback The download's feedback.
     def handle_feedback(self, feedback):
         completion = feedback.feedback.completion
         self.controller.audio_download_completion_updated.emit(self.video_id, completion)
@@ -128,9 +127,9 @@ class AudioDownloadManager(object):
             "Download of '{0}' {1}% complete.".format(self.video_id, completion)
         )
 
-    ## 
+    ## Callback for a download's result.
     #  @param self The object pointer.
-    #  @param future
+    #  @param future The finished future object containing the result's value.
     def handle_result(self, future):
         result = future.result().result
         self.controller.gui_node.log_info(

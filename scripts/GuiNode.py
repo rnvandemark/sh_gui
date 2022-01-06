@@ -3,7 +3,7 @@ from PyQt5.QtCore import QThread
 from rclpy import spin as rclpy_spin, shutdown as rclpy_shutdown
 from rclpy.node import Node
 from rclpy.action import ActionClient
-from std_msgs.msg import Empty, Float32, Header
+from std_msgs.msg import Empty, Float32
 
 import sh_common_constants
 from sh_common.heartbeat_node import HeartbeatNode
@@ -253,17 +253,6 @@ class GuiNode(HeartbeatNode):
     def scc_telemetry_callback(self, msg):
         self.qt_parent.scc_telemetry_updated.emit(msg)
     
-#    ## A helper function to package a device (in)activation request.
-#    #  @param self The object pointer.
-#    #  @param device_id The coordinated ID for the device that is being requested to be activated or deactivated.
-#    #  @param active Whether or not the device is to be activated or otherwise.
-#    def send_device_activation_change(self, device_id, active):
-#        device_activation_change_msg = DeviceActivationChange()
-#        device_activation_change_msg.device_id = device_id
-#        device_activation_change_msg.active = active
-#        self.device_activation_change_pub.publish(device_activation_change_msg)
-#        self.log_info("Set device with ID [{0}] to [{1}ACTIVE].".format(device_id, "" if active else "IN"))
-    
     ## Update the individual control intensity.
     #  @param self The object pointer.
     #  @param intensity The new intensity.
@@ -296,10 +285,10 @@ class GuiNode(HeartbeatNode):
 
     ## Place a request to download a YouTube video with the specified ID.
     #  @param self The object pointer.
-    #  @param feedback_callback
+    #  @param feedback_callback The callback function to handle feedback from the action server.
     #  @param video_id The unique ID of the YouTube video.
-    #  @param quality
-    #  @return
+    #  @param quality The desired quality of the downloaded audio.
+    #  @return The future object created for the goal request.
     def queue_youtube_video_for_download(self, feedback_callback, video_id, quality=DownloadAudio.Goal.QUALITY_320):
         return self.download_audio_act.send_goal_async(
             DownloadAudio.Goal(video_id=video_id, quality=quality),
