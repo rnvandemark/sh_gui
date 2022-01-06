@@ -97,8 +97,8 @@ class Gui(QMainWindow):
         self.ui.wave_subpage.ui.slider.valueChanged.connect(self.handle_wave_update_period_update)
         self.gui_controller.wave_participant_responded.connect(self.gui_controller.add_wave_update_participant)
         self.gui_controller.scc_telemetry_updated.connect(self.ui.screen_color_coordination_page.update_scc_telemetry)
+        self.ui.sound_file_playback_page.audio_download_queue_requested.connect(self.gui_controller.queue_youtube_video_for_download)
         self.ui.sound_file_playback_page.sf_playback_command_requested.connect(self.gui_controller.send_playback_command)
-        self.ui.sound_file_playback_page.sf_files_requested.connect(self.gui_controller.append_sound_files_for_playback)
         self.gui_controller.playback_frequencies_updated.connect(self.ui.follow_hub_subpage.playback_frequencies_updated)
         self.gui_controller.playback_status_updated.connect(self.ui.sound_file_playback_page.update_playback_status)
 

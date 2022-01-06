@@ -50,3 +50,9 @@ class YouTubeVideoListing(QWidget):
         # Ensure each column, aside from the thumbnail, has the same width
         for i in range(2, self.ui.overall_layout.columnCount()):
             self.ui.overall_layout.setColumnStretch(i, 1)
+
+    ## Getter for the video's unique ID, returns null if a video is not set.
+    #  @param self The object pointer.
+    #  @return The video's unique ID.
+    def get_video_id(self):
+        return self.result_dict["id"] if self.result_dict else None

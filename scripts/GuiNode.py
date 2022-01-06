@@ -2,15 +2,17 @@ from PyQt5.QtCore import QThread
 
 from rclpy import spin as rclpy_spin, shutdown as rclpy_shutdown
 from rclpy.node import Node
+from rclpy.action import ActionClient
 from std_msgs.msg import Empty, Float32, Header
 
 import sh_common_constants
 from sh_common.heartbeat_node import HeartbeatNode
 from sh_common_interfaces.msg import ModeChange, ModeChangeRequest, \
     DeviceActivationChange, CountdownState, WaveParticipantLocation, \
-    WaveUpdate, Float32Arr, Color, StringArr
+    WaveUpdate, Float32Arr, Color
 from sh_scc_interfaces.msg import ColorPeaksTelem
 from sh_sfp_interfaces.msg import PlaybackCommand, PlaybackUpdate
+from sh_sfp_interfaces.action import DownloadAudio
 
 MAX_AUX_DEVICE_COUNT = 32
 
@@ -91,12 +93,6 @@ class GuiNode(HeartbeatNode):
             10
         )
 
-        self.sound_file_path_list_pub = self.create_publisher(
-            StringArr,
-            sh_common_constants.topics.REQUESTED_PLAYBACK_FILES,
-            10
-        )
-
         #
         # ROS subscribers
         #
@@ -141,6 +137,16 @@ class GuiNode(HeartbeatNode):
             sh_common_constants.topics.PLAYBACK_UPDATES,
             self.playback_updates_callback,
             1
+        )
+
+        #
+        # ROS action servers
+        #
+
+        self.download_audio_act = ActionClient(
+            self,
+            DownloadAudio,
+            sh_common_constants.actions.DOWNLOAD_AUDIO
         )
 
         # Local variable(s)
@@ -288,11 +294,17 @@ class GuiNode(HeartbeatNode):
     def send_playback_command(self, command):
         self.sound_file_playback_command_pub.publish(command)
 
-    ## Publish the request sound files to queue.
+    ## Place a request to download a YouTube video with the specified ID.
     #  @param self The object pointer.
-    #  @param sound_file_paths The absolute paths to the files requested.
-    def append_sound_files_for_playback(self, sound_file_paths):
-        self.sound_file_path_list_pub.publish(sound_file_paths)
+    #  @param feedback_callback
+    #  @param video_id The unique ID of the YouTube video.
+    #  @param quality
+    #  @return
+    def queue_youtube_video_for_download(self, feedback_callback, video_id, quality=DownloadAudio.Goal.QUALITY_320):
+        return self.download_audio_act.send_goal_async(
+            DownloadAudio.Goal(video_id=video_id, quality=quality),
+            feedback_callback=feedback_callback
+        ) if self.download_audio_act.server_is_ready() else None
 
     ## Forward the playback frequencies to callbacks.
     #  @param self The object pointer.

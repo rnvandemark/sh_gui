@@ -77,6 +77,53 @@ class WaveUpdateData(object):
             self.location -= _2PI
         return msg
 
+## 
+class AudioDownloadManager(object):
+
+    ## The constructor.
+    #  @param node
+    #  @param self The object pointer.
+    def __init__(self, node):
+        self.video_id = None
+        self.node = node
+        self.send_audio_download_goal_future = None
+        self.audio_download_result_future = None
+
+    ## 
+    #  @param self The object pointer.
+    #  @param video_id
+    def send_goal(self, video_id):
+        self.video_id = video_id
+        self.send_audio_download_goal_future = self.node.queue_youtube_video_for_download(
+            self.handle_feedback,
+            self.video_id
+        )
+        self.send_audio_download_goal_future.add_done_callback(self.handle_request_response)
+
+    ## 
+    #  @param self The object pointer.
+    #  @param future
+    def handle_request_response(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.node.log_error("Audio download request was rejected: '{0}'".format(self.video_id))
+        else:
+            self.audio_download_result_future = goal_handle.get_result_async()
+            self.audio_download_result_future.add_done_callback(self.handle_result)
+
+    ## 
+    #  @param self The object pointer.
+    #  @param feedback
+    def handle_feedback(self, feedback):
+        self.node.log_debug("Download of '{0}' {1}% complete.".format(self.video_id, feedback.feedback.completion))
+
+    ## 
+    #  @param self The object pointer.
+    #  @param future
+    def handle_result(self, future):
+        result = future.result().result
+        self.node.log_info("Video with id '{0}' saved locally to {1}".format(self.video_id, result.local_url))
+
 ## Container to identify the current mode and any data used to support this mode.
 class ActiveModeData(object):
 
@@ -131,6 +178,9 @@ class GuiController(QObject):
         # Init ROS and create node interface
         rclpy_init(args=sargv)
         self.gui_node = GuiNode(self)
+
+        # Create other local variables
+        self.audio_download_managers = {}
 
     ## Start all peripherals.
     #  @param self The object pointer.
@@ -270,8 +320,13 @@ class GuiController(QObject):
     def send_playback_command(self, command):
         self.gui_node.send_playback_command(command)
 
-    ## Helper function to pass the requested sound file(s) to the ROS node interface.
+    ## Handle the user's request to queue a new YouTube video for sound file playback.
+    #  If the listing is not set, simply ignore the request.
     #  @param self The object pointer.
-    #  @param sound_file_paths The absolute paths to the files requested.
-    def append_sound_files_for_playback(self, sound_file_paths):
-        self.gui_node.append_sound_files_for_playback(sound_file_paths)
+    #  @param video_listing The YouTubeVideoListing widget describing the video.
+    def queue_youtube_video_for_download(self, video_listing):
+        vid_id = video_listing.get_video_id()
+        if vid_id:
+            audio_download_manager = AudioDownloadManager(self.gui_node)
+            audio_download_manager.send_goal(vid_id)
+            self.audio_download_managers[vid_id] = audio_download_manager

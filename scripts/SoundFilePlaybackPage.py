@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QWidget, QFileDialog
 from PyQt5.QtGui import QIcon
 
 from scripts import GuiUtils
+from scripts.YouTubeVideoListing import YouTubeVideoListing
 from scripts.YouTubeVideoResult import YouTubeVideoResult
 from scripts.Ui_SoundFilePlaybackPage import Ui_SoundFilePlaybackPage
 
@@ -18,10 +19,10 @@ class SoundFilePlaybackPage(QWidget):
     # Qt Signal(s)
     #
 
+    ## 
+    audio_download_queue_requested = pyqtSignal(YouTubeVideoListing)
     ## Emits a soundfile playback command of any type.
     sf_playback_command_requested = pyqtSignal(PlaybackCommand)
-    ## Emits a list of absolute file paths to requested sound files.
-    sf_files_requested = pyqtSignal(StringArr)
 
     ## The constructor.
     #  @param self The object pointer.
@@ -126,6 +127,7 @@ class SoundFilePlaybackPage(QWidget):
             for n in range(len(search_results)):
                 vid_result = YouTubeVideoResult(self.ui.search_results_scroll_area)
                 vid_result.ui.youtube_video_listing.populate(search_results[n])
+                vid_result.queue_requested.connect(self.audio_download_queue_requested)
                 self.ui.search_results_layout.addWidget(vid_result)
 
     ## Update UI elements given the current sound file playback status.
