@@ -55,47 +55,51 @@
    </item>
    <item>
     <widget class="QWidget" name="overall_playback_widget">
-     <layout class="QGridLayout" name="control_btns_layout">
-      <item row="0" column="0">
-       <widget class="ClickableImage" name="play_pause_btn">
-        <property name="fixedSize">
-         <size>
-          <width>80</width>
-          <height>80</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>⏯</string>
-        </property>
-       </widget>
+     <layout class="QVBoxLayout" name="remaining_layout">
+      <item>
+       <layout class="QHBoxLayout" name="remaining_layout">
+        <item>
+         <widget class="QPushButton" name="play_pause_btn">
+          <property name="fixedSize">
+           <size>
+            <width>80</width>
+            <height>80</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>⏯</string>
+          </property>
+         </widget>
+          </item>
+          <item>
+         <widget class="QPushButton" name="stop_btn">
+          <property name="fixedSize">
+           <size>
+            <width>80</width>
+            <height>80</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>⏹</string>
+          </property>
+         </widget>
+          </item>
+          <item>
+         <widget class="QPushButton" name="skip_btn">
+          <property name="fixedSize">
+           <size>
+            <width>80</width>
+            <height>80</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>⏭️</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
-      <item row="0" column="1">
-       <widget class="ClickableImage" name="stop_btn">
-        <property name="fixedSize">
-         <size>
-          <width>80</width>
-          <height>80</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>⏹</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="ClickableImage" name="skip_btn">
-        <property name="fixedSize">
-         <size>
-          <width>80</width>
-          <height>80</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>⏭️</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0" colspan="3">
+      <item>
        <widget class="QSlider" name="sound_file_playback_status">
         <property name="orientation">
          <set>Horizontal</set>
@@ -114,14 +118,14 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0" colspan="3">
+      <item>
        <widget class="QLabel" name="playback_time">
         <property name="alignment">
          <set>AlignCenter</set>
         </property>
        </widget>
       </item>
-      <item row="3" column="0" colspan="3">
+      <item>
        <widget class="QLabel" name="sound_file_name">
         <property name="wordWrap">
          <bool>true</bool>
@@ -131,7 +135,7 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="0" colspan="3">
+      <item>
        <widget class="QScrollArea" name="queued_videos_scroll_area">
         <property name="widgetResizable">
          <bool>true</bool>
@@ -151,10 +155,6 @@
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-    <class>ClickableImage</class>
-    <header>scripts.ClickableImage</header>
-  </customwidget>
  </customwidgets>
  <resources/>
  <connections/>

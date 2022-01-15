@@ -111,9 +111,3 @@ class FollowHubSubpage(QWidget):
                     color.blue(),
                     intensity=intensities[i]
                 )
-
-    ## Set the color intensities given the frequencies of the sound currently playing.
-    #  @param self The object pointer.
-    #  @param msg The calculated playback frequencies.
-    def playback_frequencies_updated(self, msg):
-        self.set_lbl_intensities(self.calc_intensities(msg.data))

@@ -2,7 +2,6 @@ from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QWidget
 
 from scripts.Ui_YouTubeVideoResult import Ui_YouTubeVideoResult
-from scripts.YouTubeVideoListing import YouTubeVideoListing
 
 ## A simple pair of widgets to label the value of a slider.
 class YouTubeVideoResult(QWidget):
@@ -11,7 +10,7 @@ class YouTubeVideoResult(QWidget):
     #
 
     ## Emit a signal of the YouTube video's original listing
-    queue_requested = pyqtSignal(YouTubeVideoListing)
+    queue_requested = pyqtSignal(dict)
 
     ## The constructor.
     #  @param self The object pointer.
@@ -32,4 +31,4 @@ class YouTubeVideoResult(QWidget):
     ## Attempt to queue the video corresponding to this result.
     #  @param self The object pointer.
     def request_queue(self):
-        self.queue_requested.emit(self.ui.youtube_video_listing)
+        self.queue_requested.emit(self.ui.youtube_video_listing.result_dict)

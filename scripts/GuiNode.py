@@ -5,14 +5,16 @@ from rclpy.node import Node
 from rclpy.action import ActionClient
 from std_msgs.msg import Empty, Float32
 
+from scripts import GuiUtils
+
 import sh_common_constants
 from sh_common.heartbeat_node import HeartbeatNode
 from sh_common_interfaces.msg import ModeChange, ModeChangeRequest, \
     DeviceActivationChange, CountdownState, WaveParticipantLocation, \
     WaveUpdate, Float32Arr, Color
 from sh_scc_interfaces.msg import ColorPeaksTelem
-from sh_sfp_interfaces.msg import PlaybackCommand, PlaybackUpdate
-from sh_sfp_interfaces.action import DownloadAudio
+from sh_sfp_interfaces.srv import RequestPlaybackCommand
+from sh_sfp_interfaces.action import DownloadAudio, PlaySoundFile
 
 MAX_AUX_DEVICE_COUNT = 32
 
@@ -87,12 +89,6 @@ class GuiNode(HeartbeatNode):
             MAX_AUX_DEVICE_COUNT
         )
 
-        self.sound_file_playback_command_pub = self.create_publisher(
-            PlaybackCommand,
-            sh_common_constants.topics.PLAYBACK_COMMANDS,
-            10
-        )
-
         #
         # ROS subscribers
         #
@@ -125,28 +121,29 @@ class GuiNode(HeartbeatNode):
             1
         )
 
-        self.playback_frequencies_sub = self.create_subscription(
-            Float32Arr,
-            sh_common_constants.topics.PLAYBACK_FREQUENCIES,
-            self.playback_frequencies_callback,
-            1
-        )
+        #
+        # ROS service clients
+        #
 
-        self.cap_peaks_telem_sub = self.create_subscription(
-            PlaybackUpdate,
-            sh_common_constants.topics.PLAYBACK_UPDATES,
-            self.playback_updates_callback,
-            1
+        self.request_playback_command_cli = self.create_client(
+            RequestPlaybackCommand,
+            sh_common_constants.services.PLAYBACK_COMMANDS
         )
 
         #
-        # ROS action servers
+        # ROS action clients
         #
 
         self.download_audio_act = ActionClient(
             self,
             DownloadAudio,
             sh_common_constants.actions.DOWNLOAD_AUDIO
+        )
+
+        self.play_sound_file_act = ActionClient(
+            self,
+            PlaySoundFile,
+            sh_common_constants.actions.REQUEST_PLAY_SOUND_FILE
         )
 
         # Local variable(s)
@@ -281,7 +278,13 @@ class GuiNode(HeartbeatNode):
     #  @param self The object pointer.
     #  @param command The playback command to issue.
     def send_playback_command(self, command):
-        self.sound_file_playback_command_pub.publish(command)
+        req = RequestPlaybackCommand.Request()
+        req.cmd = command
+        resp = self.request_playback_command_cli.call(req)
+        if resp.success:
+            self.log_info("Successfully sent sound playback command [{0}].".format(command))
+        else:
+            self.log_error("Error sending sound playback command [{0}].".format(command))
 
     ## Place a request to download a YouTube video with the specified ID.
     #  @param self The object pointer.
@@ -295,14 +298,14 @@ class GuiNode(HeartbeatNode):
             feedback_callback=feedback_callback
         ) if self.download_audio_act.server_is_ready() else None
 
-    ## Forward the playback frequencies to callbacks.
+    ## Place a request to play the sound file at the specified path.
     #  @param self The object pointer.
-    #  @param msg The array of frequencies.
-    def playback_frequencies_callback(self, msg):
-        self.qt_parent.playback_frequencies_updated.emit(msg)
-
-    ## Forward the playback update to callbacks.
-    #  @param self The object pointer.
-    #  @param msg The playback status update, whether or not something is playing.
-    def playback_updates_callback(self, msg):
-        self.qt_parent.playback_status_updated.emit(msg)
+    #  @param feedback_callback The callback function to handle feedback from the action server.
+    #  @param local_url The absolute filename of the sound file saved locally.
+    #  @return The future object created for the goal request.
+    def request_play_sound_file(self, local_url, feedback_callback):
+        return GuiUtils.send_action_goal_async(
+            self.play_sound_file_act,
+            PlaySoundFile.Goal(local_url=local_url),
+            fb_cb=feedback_callback
+        )

@@ -3,6 +3,7 @@ from os.path import join as ojoin
 from PyQt5.QtCore import QTime, QDate, QDateTime
 from PyQt5.QtGui import QPalette, QColor, QImage, QPixmap
 
+from rclpy.duration import Duration
 from ament_index_python.packages import get_package_share_directory
 from cv_bridge import CvBridge
 from sh_common_interfaces.msg import ModeChange
@@ -144,3 +145,22 @@ def simply_formatted_time(qtime):
 #  @return The stringified date-time.
 def simply_formatted_date_time(qdatetime):
     return qdatetime.toString("dd.MM.yyyy h:mm AP")
+
+## Get the number of seconds that a ROS Duration message covers.
+#  @param duration_msg The builtin_interfaces Duration msg.
+#  @return The number of seconds that the duration covers.
+def get_duration_seconds(duration_msg):
+    duration = Duration.from_msg(duration_msg)
+    return duration.nanoseconds / 1000000000
+
+## Send an async goal to the given action client. If it is connected to its
+#  server, return the future of the request response. Otherwise, return null.
+#  @param act_cli The action client.
+#  @param goal The goal to send to the corresponding action server.
+#  @param fb_cb An optional callback for the action's feedback.
+#  @return The future of the request response if successful, null otherwise.
+def send_action_goal_async(act_cli, goal, fb_cb=None):
+    return act_cli.send_goal_async(
+        goal,
+        feedback_callback=fb_cb
+    ) if act_cli.server_is_ready() else None

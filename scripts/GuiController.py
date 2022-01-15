@@ -1,5 +1,6 @@
 from sys import argv as sargv
 from math import cos, pi
+from collections import OrderedDict
 
 from PyQt5.QtCore import QObject, QTimer, pyqtSignal
 
@@ -8,6 +9,7 @@ from sh_common_interfaces.msg import ModeChange, CountdownState, WaveUpdate, \
     WaveParticipantLocation, Float32Arr
 from sh_scc_interfaces.msg import ColorPeaksTelem
 from sh_sfp_interfaces.msg import PlaybackUpdate
+from sh_sfp_interfaces.srv import RequestPlaybackCommand
 
 from scripts import GuiUtils
 from scripts.GuiNode import GuiNode
@@ -132,9 +134,96 @@ class AudioDownloadManager(object):
     #  @param future The finished future object containing the result's value.
     def handle_result(self, future):
         result = future.result().result
-        self.controller.gui_node.log_info(
-            "Video with id '{0}' saved locally to {1}".format(self.video_id, result.local_url)
+        self.controller.handle_completed_video_download(self.video_id, result.local_url)
+
+## A class to describe a downloaded sound file.
+class DownloadedAudio(object):
+
+    ## The constructor.
+    #  @param self The object pointer.
+    #  @param youtube_listing_dict The result from the original YouTube query.
+    def __init__(self, youtube_listing_dict, local_url=None):
+        self.youtube_listing_dict = youtube_listing_dict
+        self.local_url = local_url
+
+## A class used to pipe data back and forth from the sound file player action server.
+class SoundFilePlayerManager(object):
+
+    ## The constructor.
+    #  @param self The object pointer.
+    #  @param controller The GUI controller.
+    def __init__(self, controller):
+        self.controller = controller
+        self.reset()
+
+    ## Reset to an 'initial' state.
+    #  @param self The object pointer.
+    def reset(self):
+        self.video_id = None
+        self.local_url = None
+        self.active = False
+        self.paused = False
+        self.stopped = False
+        self.send_sound_file_playback_goal_future = None
+        self.sound_file_playback_result_future = None
+
+    ## Send a goal to the action server to start playback of a sound file.
+    #  @param self The object pointer.
+    #  @param video_id The unique video ID according to YouTube that was audio was downloaded from.
+    #  @param local_url The absolute filename of the sound file saved locally.
+    def send_goal(self, video_id, local_url):
+        self.reset()
+        self.video_id = video_id
+        self.local_url = local_url
+        self.active = True
+        self.send_sound_file_playback_goal_future = self.controller.gui_node.request_play_sound_file(
+            self.local_url,
+            self.handle_feedback
         )
+        if self.send_sound_file_playback_goal_future:
+            self.send_sound_file_playback_goal_future.add_done_callback(self.handle_request_response)
+            return True
+        else:
+            return False
+
+    ## Callback for the play request's result (accepted or rejected?).
+    #  @param self The object pointer.
+    #  @param future The finished future object containing the response.
+    def handle_request_response(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.active = False
+            self.controller.gui_node.log_err(
+                "Request to play sound file was rejected: '{0}'".format(self.local_url)
+            )
+        else:
+            self.sound_file_playback_result_future = goal_handle.get_result_async()
+            self.sound_file_playback_result_future.add_done_callback(self.handle_result)
+
+    ## Callback for a playback's feedback updates.
+    #  @todo Implement playback title.
+    #  @param self The object pointer.
+    #  @param feedback The playback's feedback.
+    def handle_feedback(self, feedback):
+        update = feedback.feedback.update
+        self.paused = update.is_paused
+        self.controller.playback_status_updated.emit(
+            update,
+            "",
+            self.active
+        )
+
+    ## Callback for a play request's result.
+    #  @param self The object pointer.
+    #  @param future The finished future object containing the result's value.
+    def handle_result(self, future):
+        result = future.result().result
+        self.controller.gui_node.log_info(
+            "Finished playing '{0}' (originally from {1}).".format(self.video_id, self.local_url)
+        )
+        self.active = False
+        self.stopped = result.was_stopped
+        self.controller.handle_completed_sound_file_playback(self.video_id)
 
 ## Container to identify the current mode and any data used to support this mode.
 class ActiveModeData(object):
@@ -167,13 +256,13 @@ class GuiController(QObject):
     ## Emits the screen color coordinator's telemetry
     scc_telemetry_updated = pyqtSignal(ColorPeaksTelem)
     ## Emits a signal that a video reuested to be downloaded was confirmed
-    audio_download_queue_confirmed = pyqtSignal(YouTubeVideoListing)
+    audio_download_queue_confirmed = pyqtSignal(dict)
     ## Emits the audio download's latest progress for the corresponding video
     audio_download_completion_updated = pyqtSignal(str, float)
-    ## Emits updates on the last set of playback frequencies calculated
-    playback_frequencies_updated = pyqtSignal(Float32Arr)
+    ## Emits the video ID of a queued sound that is about to start playing
+    starting_sound_file_playback = pyqtSignal(str)
     ## Emits updates on the current sound file playback status
-    playback_status_updated = pyqtSignal(PlaybackUpdate)
+    playback_status_updated = pyqtSignal(PlaybackUpdate, str, bool)
 
     ## The constructor.
     #  @param self The object pointer.
@@ -188,6 +277,8 @@ class GuiController(QObject):
         self.wave_update_timer = QTimer(parent=self)
 
         self.audio_download_managers = {}
+        self.downloaded_audios = OrderedDict()
+        self.sound_file_player_manager = SoundFilePlayerManager(self)
 
         # Make Qt connections
         self.one_hertz_timer.timeout.connect(self.check_for_countdown_state_update)
@@ -333,18 +424,75 @@ class GuiController(QObject):
     #  @param self The object pointer.
     #  @param command The playback command to issue.
     def send_playback_command(self, command):
+        if -1 == command:
+            if self.sound_file_player_manager.paused or self.sound_file_player_manager.stopped:
+                command = RequestPlaybackCommand.Request.RESUME
+            else:
+                command = RequestPlaybackCommand.Request.PAUSE
+        if (
+            (not self.sound_file_player_manager.active)
+            and (command == RequestPlaybackCommand.Request.RESUME)
+        ):
+            self.check_for_next_playback(True)
         self.gui_node.send_playback_command(command)
 
     ## Handle the user's request to queue a new YouTube video for sound file playback.
     #  If the listing is not set, simply ignore the request.
     #  @param self The object pointer.
-    #  @param video_listing The YouTubeVideoListing widget describing the video.
-    def queue_youtube_video_for_download(self, video_listing):
-        vid_id = video_listing.get_video_id()
-        if vid_id:
+    #  @param youtube_listing_dict The YouTube query result that describes the video.
+    def queue_youtube_video_for_download(self, youtube_listing_dict):
+        video_id = youtube_listing_dict["id"]
+        if video_id:
             audio_download_manager = AudioDownloadManager(self)
-            if audio_download_manager.send_goal(vid_id):
-                self.audio_download_queue_confirmed.emit(video_listing)
-                self.audio_download_managers[vid_id] = audio_download_manager
+            if audio_download_manager.send_goal(video_id):
+                self.audio_download_queue_confirmed.emit(youtube_listing_dict)
+                self.audio_download_managers[video_id] = audio_download_manager
+                self.downloaded_audios[video_id] = DownloadedAudio(youtube_listing_dict)
             else:
                 self.gui_node.log_err("Failed to send audio download request.")
+
+    ## Handle a YouTube video download having been completed.
+    #  @param self The object pointer.
+    #  @param video_id The unique YouTube video ID.
+    #  @param video_id The local URL where the sound file was downloaded.
+    def handle_completed_video_download(self, video_id, local_url):
+        self.gui_node.log_info(
+            "Video with id '{0}' saved locally to '{1}'.".format(
+                video_id,
+                local_url
+        ))
+        self.downloaded_audios[video_id].local_url = local_url
+        del self.audio_download_managers[video_id]
+        self.check_for_next_playback(False)
+
+    ## Handle a sound file's playback having finished.
+    #  @param self The object pointer.
+    #  @param video_id The unique YouTube video ID.
+    def handle_completed_sound_file_playback(self, video_id):
+        self.playback_status_updated.emit(
+            PlaybackUpdate(),
+            "",
+            False
+        )
+        del self.downloaded_audios[video_id]
+        self.check_for_next_playback(False)
+
+    ## Check if the next queued downloaded sound file, if any, should be started.
+    #  If any should, the request is sent. If not, this does nothing.
+    #  @param self The object pointer.
+    #  @param ignore_stopped Whether or not the next playback should proceed
+    #  even though playback is currently stopped.
+    def check_for_next_playback(self, ignore_stopped):
+        if (
+            (not self.sound_file_player_manager.active)
+            and (ignore_stopped or (not self.sound_file_player_manager.stopped))
+            and self.downloaded_audios
+        ):
+            video_id = next(iter(self.downloaded_audios))
+            local_url = self.downloaded_audios[video_id].local_url
+            if local_url:
+                self.sound_file_player_manager.send_goal(
+                    video_id,
+                    local_url
+                )
+                self.starting_sound_file_playback.emit(video_id)

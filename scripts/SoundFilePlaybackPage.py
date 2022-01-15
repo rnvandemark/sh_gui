@@ -10,7 +10,8 @@ from scripts.YouTubeVideoResult import YouTubeVideoResult
 from scripts.QueuedYouTubeVideo import QueuedYouTubeVideo
 from scripts.Ui_SoundFilePlaybackPage import Ui_SoundFilePlaybackPage
 
-from sh_sfp_interfaces.msg import PlaybackCommand, PlaybackUpdate
+from sh_sfp_interfaces.msg import PlaybackUpdate
+from sh_sfp_interfaces.srv import RequestPlaybackCommand
 
 ## The class encapsulating the display for the app's contents.
 class SoundFilePlaybackPage(QWidget):
@@ -20,9 +21,9 @@ class SoundFilePlaybackPage(QWidget):
     #
 
     ## Emits a YouTube video listing that the user reuested to download
-    audio_download_queue_requested = pyqtSignal(YouTubeVideoListing)
+    audio_download_queue_requested = pyqtSignal(dict)
     ## Emits a soundfile playback command of any type.
-    sf_playback_command_requested = pyqtSignal(PlaybackCommand)
+    sf_playback_command_requested = pyqtSignal(int)
 
     ## The constructor.
     #  @param self The object pointer.
@@ -34,7 +35,6 @@ class SoundFilePlaybackPage(QWidget):
         # Local variable(s)
         #
 
-        self.playing = True
         self.queued_youtube_videos = {}
 
         #
@@ -54,8 +54,8 @@ class SoundFilePlaybackPage(QWidget):
         # Split page contents
         GuiUtils.set_layout_stretches(
             self.ui.overall_layout,
-            (0,50),
-            (1,50)
+            (0,60),
+            (1,40)
         )
 
         # Set to "nothing"
@@ -65,9 +65,12 @@ class SoundFilePlaybackPage(QWidget):
         # Make Qt connections
         #
 
-        self.ui.play_pause_btn.clicked.connect(lambda: self.request_playback_command(PlaybackCommand.PAUSE if self.playing else PlaybackCommand.RESUME))
-        self.ui.stop_btn.clicked.connect(lambda: self.request_playback_command(PlaybackCommand.STOP))
-        self.ui.skip_btn.clicked.connect(lambda: self.request_playback_command(PlaybackCommand.SKIP))
+        # Send a value of -1, and allow the GUI controller to decide if this means
+        # 'resume' or 'pause', given that it tracks whether playback is currently
+        # playing, paused, stopped, etc.
+        self.ui.play_pause_btn.clicked.connect(lambda: self.request_playback_command(-1))
+        self.ui.stop_btn.clicked.connect(lambda: self.request_playback_command(RequestPlaybackCommand.Request.STOP))
+        self.ui.skip_btn.clicked.connect(lambda: self.request_playback_command(RequestPlaybackCommand.Request.SKIP))
         self.ui.clear_youtube_search_btn.clicked.connect(self.clear_youtube_search)
         self.ui.youtube_search_btn.clicked.connect(self.search_youtube)
 
@@ -84,9 +87,7 @@ class SoundFilePlaybackPage(QWidget):
     #  @param self The object pointer.
     #  @param cmd The playback command to populate the message with.
     def request_playback_command(self, cmd):
-        msg = PlaybackCommand()
-        msg.cmd = cmd
-        self.sf_playback_command_requested.emit(msg)
+        self.sf_playback_command_requested.emit(cmd)
 
     ## Update UI elements to "nothing".
     #  @param self The object pointer.
@@ -119,12 +120,12 @@ class SoundFilePlaybackPage(QWidget):
 
     ## Queue a video that is confirmed able to start downloading.
     #  @param self The object pointer.
-    #  @param video_listing The YouTube video listing object.
-    def queue_video(self, video_listing):
+    #  @param youtube_listing_dict The YouTube query result that describes the video.
+    def queue_video(self, youtube_listing_dict):
         queued_vid = QueuedYouTubeVideo(self.ui.queued_videos_scroll_area)
-        queued_vid.ui.youtube_video_listing.populate(video_listing.result_dict)
+        queued_vid.ui.youtube_video_listing.populate(youtube_listing_dict)
         self.ui.queued_videos_layout.addWidget(queued_vid)
-        self.queued_youtube_videos[video_listing.get_video_id()] = queued_vid
+        self.queued_youtube_videos[queued_vid.ui.youtube_video_listing.get_video_id()] = queued_vid
 
     ## Received an update on a video's download by its ID.
     #  @param self The object pointer.
@@ -135,16 +136,15 @@ class SoundFilePlaybackPage(QWidget):
 
     ## Update UI elements given the current sound file playback status.
     #  @param self The object pointer.
-    #  @param msg The message containing all information related to sound file playback.
-    def update_playback_status(self, msg):
-        prev_playing = self.playing
-        self.playing = msg.status == PlaybackUpdate.PLAYING
-        if self.playing != prev_playing:
-            self.ui.play_pause_btn.setText("⏸" if self.playing else "▶")
-        if self.playing:
-            self.ui.sound_file_name.setText(msg.name)
-            curr_total_secs = msg.duration_current.to_sec()
-            total_total_secs = msg.duration_total.to_sec()
+    #  @param update The sound file playback's update.
+    #  @param title The title to display for the video.
+    #  @param active Whether or not playback is active or has finished.
+    def update_playback_status(self, update, title, active):
+        self.ui.play_pause_btn.setText("▶" if (not active) or update.is_paused else "⏸")
+        if active:
+            self.ui.sound_file_name.setText(title)
+            curr_total_secs = GuiUtils.get_duration_seconds(update.duration_current)
+            total_total_secs = GuiUtils.get_duration_seconds(update.duration_total)
             curr_min, curr_sec = divmod(curr_total_secs, 60)
             total_min, total_sec = divmod(total_total_secs, 60)
             self.ui.playback_time.setText("{0}:{1} / {2}:{3}".format(
@@ -158,3 +158,10 @@ class SoundFilePlaybackPage(QWidget):
             )
         else:
             self.set_null_playback_status()
+
+    ## 
+    #  @param self The object pointer.
+    #  @param video_id The unique ID of the YouTube video downloaded.
+    def deque_audio_download(self, video_id):
+        self.queued_youtube_videos[video_id].deleteLater()
+        del self.queued_youtube_videos[video_id]
