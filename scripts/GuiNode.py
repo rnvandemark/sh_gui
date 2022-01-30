@@ -11,7 +11,7 @@ import sh_common_constants
 from sh_common.heartbeat_node import HeartbeatNode
 from sh_common_interfaces.msg import ModeChange, ModeChangeRequest, \
     DeviceActivationChange, CountdownState, WaveParticipantLocation, \
-    WaveUpdate, Float32Arr, Color
+    WaveUpdate, Float32Arr, Color, StringArr
 from sh_scc_interfaces.msg import ColorPeaksTelem
 from sh_sfp_interfaces.srv import RequestPlaybackCommand
 from sh_sfp_interfaces.action import DownloadAudio, PlaySoundFile
@@ -291,10 +291,19 @@ class GuiNode(HeartbeatNode):
     #  @param feedback_callback The callback function to handle feedback from the action server.
     #  @param video_id The unique ID of the YouTube video.
     #  @param quality The desired quality of the downloaded audio.
+    #  @param file_formats_data The desired file formats.
     #  @return The future object created for the goal request.
-    def queue_youtube_video_for_download(self, feedback_callback, video_id, quality=DownloadAudio.Goal.QUALITY_320):
+    def queue_youtube_video_for_download(
+            self,
+            feedback_callback,
+            video_id,
+            quality=DownloadAudio.Goal.QUALITY_320,
+            file_formats_data=["m4a", "wav"]
+    ):
+        file_formats = StringArr()
+        file_formats.data = file_formats_data
         return self.download_audio_act.send_goal_async(
-            DownloadAudio.Goal(video_id=video_id, quality=quality),
+            DownloadAudio.Goal(video_id=video_id, quality=quality, file_formats=file_formats),
             feedback_callback=feedback_callback
         ) if self.download_audio_act.server_is_ready() else None
 

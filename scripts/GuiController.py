@@ -134,7 +134,10 @@ class AudioDownloadManager(object):
     #  @param future The finished future object containing the result's value.
     def handle_result(self, future):
         result = future.result().result
-        self.controller.handle_completed_video_download(self.video_id, result.local_url)
+        self.controller.handle_completed_video_download(
+            self.video_id,
+            result.local_urls.data
+        )
 
 ## A class to describe a downloaded sound file.
 class DownloadedAudio(object):
@@ -454,14 +457,15 @@ class GuiController(QObject):
     ## Handle a YouTube video download having been completed.
     #  @param self The object pointer.
     #  @param video_id The unique YouTube video ID.
-    #  @param video_id The local URL where the sound file was downloaded.
-    def handle_completed_video_download(self, video_id, local_url):
+    #  @param local_urls The list of local file URLs that the download(s) were saved to.
+    def handle_completed_video_download(self, video_id, local_urls):
         self.gui_node.log_info(
-            "Video with id '{0}' saved locally to '{1}'.".format(
+            "Video with id '{0}' saved locally to {1}.".format(
                 video_id,
-                local_url
+                local_urls
         ))
-        self.downloaded_audios[video_id].local_url = local_url
+        # TODO: improve this, for now assume local_urls[1] is the WAV file
+        self.downloaded_audios[video_id].local_url = local_urls[1]
         del self.audio_download_managers[video_id]
         self.check_for_next_playback(False)
 
