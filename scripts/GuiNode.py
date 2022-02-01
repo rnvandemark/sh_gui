@@ -300,12 +300,14 @@ class GuiNode(HeartbeatNode):
             quality=DownloadAudio.Goal.QUALITY_320,
             file_formats_data=["m4a", "wav"]
     ):
-        file_formats = StringArr()
-        file_formats.data = file_formats_data
-        return self.download_audio_act.send_goal_async(
-            DownloadAudio.Goal(video_id=video_id, quality=quality, file_formats=file_formats),
-            feedback_callback=feedback_callback
-        ) if self.download_audio_act.server_is_ready() else None
+        return GuiUtils.send_action_goal_async(
+            self.download_audio_act,
+            DownloadAudio.Goal(
+                video_id=video_id,
+                quality=quality,
+                file_formats=StringArr(data=file_formats_data)),
+            fb_cb=feedback_callback
+        )
 
     ## Place a request to play the sound file at the specified path.
     #  @param self The object pointer.
