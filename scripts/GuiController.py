@@ -151,6 +151,69 @@ class AudioDownloadManager(object):
             result.local_urls.data
         )
 
+## A class used to pipe data back and forth from the audio analysis action server.
+class AudioAnalysisManager(object):
+
+    ## The constructor.
+    #  @param self The object pointer.
+    #  @param controller The GUI controller.
+    def __init__(self, controller):
+        self.video_id = None
+        self.local_url = None
+        self.controller = controller
+        self.send_audio_analysis_goal_future = None
+        self.audio_analysis_result_future = None
+
+    ## Send a goal to the action server to start audio analysis.
+    #  @param self The object pointer.
+    #  @param video_id The unique video ID according to YouTube.
+    #  @param local_url The local file URL of the sound file to analyze.
+    def send_goal(self, video_id, local_url):
+        self.video_id = video_id
+        self.local_url = local_url
+        self.send_audio_analysis_goal_future = self.controller.gui_node.request_audio_analysis(
+            self.handle_feedback,
+            self.local_url
+        )
+        if self.send_audio_analysis_goal_future:
+            self.send_audio_analysis_goal_future.add_done_callback(self.handle_request_response)
+            return True
+        else:
+            return False
+
+    ## Callback for the analysis request's result (accepted or rejected?).
+    #  @param self The object pointer.
+    #  @param future The finished future object containing the response.
+    def handle_request_response(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.controller.gui_node.log_err(
+                "Audio analysis request was rejected: '{0}'".format(self.video_id)
+            )
+        else:
+            self.audio_analysis_result_future = goal_handle.get_result_async()
+            self.audio_analysis_result_future.add_done_callback(self.handle_result)
+
+    ## Callback for an analysis' feedback updates.
+    #  @param self The object pointer.
+    #  @param feedback The analysis' feedback.
+    def handle_feedback(self, feedback):
+        status = feedback.feedback.status
+#        self.controller.audio_download_completion_updated.emit(self.video_id, completion)
+        self.controller.gui_node.log_info(
+            "Analysis of '{0}' finished stage {1}.".format(self.local_url, status)
+        )
+
+    ## Callback for an analysis' result.
+    #  @param self The object pointer.
+    #  @param future The finished future object containing the result's value.
+    def handle_result(self, future):
+        result = future.result().result
+        self.controller.handle_completed_audio_analysis(
+            self.video_id,
+            result.characteristics
+        )
+
 ## A class used to pipe data back and forth from the sound file player action server.
 class SoundFilePlayerManager(object):
 
@@ -282,6 +345,7 @@ class GuiController(QObject):
         self.wave_update_timer = QTimer(parent=self)
 
         self.audio_download_managers = {}
+        self.audio_analysis_managers = {}
         self.queued_audios = OrderedDict()
         self.sound_file_player_manager = SoundFilePlayerManager(self)
 
@@ -466,9 +530,28 @@ class GuiController(QObject):
                 video_id,
                 local_urls
         ))
+
         # TODO: improve this, for now assume local_urls[1] is the WAV file
-        self.queued_audios[video_id].local_url = local_urls[1]
+        wav_url = local_urls[1]
+        self.queued_audios[video_id].local_url = wav_url
         del self.audio_download_managers[video_id]
+
+        audio_analysis_manager = AudioAnalysisManager(self)
+        if audio_analysis_manager.send_goal(video_id, wav_url):
+            self.audio_analysis_managers[video_id] = audio_analysis_manager
+        else:
+            self.gui_node.log_err("Failed to send audio analysis request.")
+
+    ## Handle a sound file audio analysis having completed.
+    #  @param self The object pointer.
+    #  @param video_id The original unique YouTube video ID.
+    #  @param characteristics The audio characteristics found.
+    def handle_completed_audio_analysis(self, video_id, characteristics):
+        self.gui_node.log_info(
+            "Finished audio analysis for video with id '{0}'.".format(video_id)
+        )
+        self.queued_audios[video_id].characteristics = characteristics
+        del self.audio_analysis_managers[video_id]
         self.check_for_next_playback(False)
 
     ## Handle a sound file's playback having finished.

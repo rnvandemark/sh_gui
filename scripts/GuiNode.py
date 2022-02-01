@@ -14,7 +14,10 @@ from sh_common_interfaces.msg import ModeChange, ModeChangeRequest, \
     WaveUpdate, Float32Arr, Color, StringArr
 from sh_scc_interfaces.msg import ColorPeaksTelem
 from sh_sfp_interfaces.srv import RequestPlaybackCommand
-from sh_sfp_interfaces.action import DownloadAudio, PlaySoundFile
+from sh_sfp_interfaces.action import DownloadAudio, PlaySoundFile, \
+    AnalyzeSoundFile
+from sh_sfp_interfaces.msg import OnsetDetectionAlgorithms, \
+    WindowingAlgorithms, RhythmDetectionAlgorithms
 
 MAX_AUX_DEVICE_COUNT = 32
 
@@ -138,6 +141,12 @@ class GuiNode(HeartbeatNode):
             self,
             DownloadAudio,
             sh_common_constants.actions.DOWNLOAD_AUDIO
+        )
+
+        self.analyze_audio_act = ActionClient(
+            self,
+            AnalyzeSoundFile,
+            sh_common_constants.actions.ANALYZE_SOUND_FILE
         )
 
         self.play_sound_file_act = ActionClient(
@@ -306,6 +315,32 @@ class GuiNode(HeartbeatNode):
                 video_id=video_id,
                 quality=quality,
                 file_formats=StringArr(data=file_formats_data)),
+            fb_cb=feedback_callback
+        )
+
+    ## Place a request to analyze the audio of a sound file at the specified path.
+    #  @param self The object pointer.
+    #  @param feedback_callback The callback function to handle feedback from the action server.
+    #  @param local_url The absolute filename of the sound file saved locally.
+    #  @param onset_alg The algorithm to use for onset detection.
+    #  @param rhythm_alg The algorithm to use for rhythm/beat detection.
+    #  @param window_alg The algorithm to use for windowing.
+    #  @return The future object created for the goal request.
+    def request_audio_analysis(
+            self,
+            feedback_callback,
+            local_url,
+            onset_alg=OnsetDetectionAlgorithms.HFC,
+            rhythm_alg=RhythmDetectionAlgorithms.MULTIFEATURE,
+            window_alg=WindowingAlgorithms.HAMMING
+    ):
+        return GuiUtils.send_action_goal_async(
+            self.analyze_audio_act,
+            AnalyzeSoundFile.Goal(
+                local_url=local_url,
+                onset=OnsetDetectionAlgorithms(alg=onset_alg),
+                rhythm=RhythmDetectionAlgorithms(alg=rhythm_alg),
+                window=WindowingAlgorithms(alg=window_alg)),
             fb_cb=feedback_callback
         )
 
