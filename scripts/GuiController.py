@@ -79,6 +79,18 @@ class WaveUpdateData(object):
             self.location -= _2PI
         return msg
 
+## A class to describe a sound file as it moves through the download, analysis,
+#  etc. pipeline.
+class QueuedAudio(object):
+
+    ## The constructor.
+    #  @param self The object pointer.
+    #  @param youtube_listing_dict The result from the original YouTube query.
+    def __init__(self, youtube_listing_dict):
+        self.youtube_listing_dict = youtube_listing_dict
+        self.local_url = None
+        self.characteristics = None
+
 ## A class used to pipe data back and forth from the audio download action server.
 class AudioDownloadManager(object):
 
@@ -138,16 +150,6 @@ class AudioDownloadManager(object):
             self.video_id,
             result.local_urls.data
         )
-
-## A class to describe a downloaded sound file.
-class DownloadedAudio(object):
-
-    ## The constructor.
-    #  @param self The object pointer.
-    #  @param youtube_listing_dict The result from the original YouTube query.
-    def __init__(self, youtube_listing_dict, local_url=None):
-        self.youtube_listing_dict = youtube_listing_dict
-        self.local_url = local_url
 
 ## A class used to pipe data back and forth from the sound file player action server.
 class SoundFilePlayerManager(object):
@@ -280,7 +282,7 @@ class GuiController(QObject):
         self.wave_update_timer = QTimer(parent=self)
 
         self.audio_download_managers = {}
-        self.downloaded_audios = OrderedDict()
+        self.queued_audios = OrderedDict()
         self.sound_file_player_manager = SoundFilePlayerManager(self)
 
         # Make Qt connections
@@ -450,7 +452,7 @@ class GuiController(QObject):
             if audio_download_manager.send_goal(video_id):
                 self.audio_download_queue_confirmed.emit(youtube_listing_dict)
                 self.audio_download_managers[video_id] = audio_download_manager
-                self.downloaded_audios[video_id] = DownloadedAudio(youtube_listing_dict)
+                self.queued_audios[video_id] = QueuedAudio(youtube_listing_dict)
             else:
                 self.gui_node.log_err("Failed to send audio download request.")
 
@@ -465,7 +467,7 @@ class GuiController(QObject):
                 local_urls
         ))
         # TODO: improve this, for now assume local_urls[1] is the WAV file
-        self.downloaded_audios[video_id].local_url = local_urls[1]
+        self.queued_audios[video_id].local_url = local_urls[1]
         del self.audio_download_managers[video_id]
         self.check_for_next_playback(False)
 
@@ -478,7 +480,7 @@ class GuiController(QObject):
             "",
             False
         )
-        del self.downloaded_audios[video_id]
+        del self.queued_audios[video_id]
         self.check_for_next_playback(False)
 
     ## Check if the next queued downloaded sound file, if any, should be started.
@@ -490,10 +492,10 @@ class GuiController(QObject):
         if (
             (not self.sound_file_player_manager.active)
             and (ignore_stopped or (not self.sound_file_player_manager.stopped))
-            and self.downloaded_audios
+            and self.queued_audios
         ):
-            video_id = next(iter(self.downloaded_audios))
-            local_url = self.downloaded_audios[video_id].local_url
+            video_id = next(iter(self.queued_audios))
+            local_url = self.queued_audios[video_id].local_url
             if local_url:
                 self.sound_file_player_manager.send_goal(
                     video_id,
