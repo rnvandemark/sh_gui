@@ -17,7 +17,7 @@ from sh_sfp_interfaces.srv import RequestPlaybackCommand
 from sh_sfp_interfaces.action import DownloadAudio, PlaySoundFile, \
     AnalyzeSoundFile
 from sh_sfp_interfaces.msg import OnsetDetectionAlgorithms, \
-    WindowingAlgorithms, RhythmDetectionAlgorithms
+    WindowingAlgorithms, RhythmDetectionAlgorithms, LabeledAudioCharacteristics
 
 MAX_AUX_DEVICE_COUNT = 32
 
@@ -348,10 +348,14 @@ class GuiNode(HeartbeatNode):
     #  @param self The object pointer.
     #  @param feedback_callback The callback function to handle feedback from the action server.
     #  @param local_url The absolute filename of the sound file saved locally.
+    #  @param characteristics The characteristics of the audio found from analysis.
     #  @return The future object created for the goal request.
-    def request_play_sound_file(self, local_url, feedback_callback):
+    def request_play_sound_file(self, feedback_callback, local_url, characteristics):
         return GuiUtils.send_action_goal_async(
             self.play_sound_file_act,
-            PlaySoundFile.Goal(local_url=local_url),
+            PlaySoundFile.Goal(labeled_audio_characteristics=LabeledAudioCharacteristics(
+                local_url=local_url,
+                characteristics=characteristics
+            )),
             fb_cb=feedback_callback
         )

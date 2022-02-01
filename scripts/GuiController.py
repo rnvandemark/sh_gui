@@ -233,6 +233,7 @@ class SoundFilePlayerManager(object):
     def reset(self):
         self.video_id = None
         self.local_url = None
+        self.characteristics = None
         self.active = False
         self.paused = False
         self.stopped = False
@@ -243,14 +244,18 @@ class SoundFilePlayerManager(object):
     #  @param self The object pointer.
     #  @param video_id The unique video ID according to YouTube that was audio was downloaded from.
     #  @param local_url The absolute filename of the sound file saved locally.
-    def send_goal(self, video_id, local_url):
+    #  @param characteristics The characteristics of the audio found from analysis.
+    #  @return Whether or not the goal response's future is initialized.
+    def send_goal(self, video_id, local_url, characteristics):
         self.reset()
         self.video_id = video_id
         self.local_url = local_url
+        self.characteristics = characteristics
         self.active = True
         self.send_sound_file_playback_goal_future = self.controller.gui_node.request_play_sound_file(
+            self.handle_feedback,
             self.local_url,
-            self.handle_feedback
+            self.characteristics
         )
         if self.send_sound_file_playback_goal_future:
             self.send_sound_file_playback_goal_future.add_done_callback(self.handle_request_response)
@@ -585,9 +590,11 @@ class GuiController(QObject):
         ):
             video_id = next(iter(self.queued_audios))
             local_url = self.queued_audios[video_id].local_url
+            characteristics = self.queued_audios[video_id].characteristics
             if local_url:
                 self.sound_file_player_manager.send_goal(
                     video_id,
-                    local_url
+                    local_url,
+                    characteristics
                 )
                 self.starting_sound_file_playback.emit(video_id)
