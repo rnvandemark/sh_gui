@@ -131,8 +131,15 @@ class SoundFilePlaybackPage(QWidget):
     #  @param self The object pointer.
     #  @param video_id The unique ID of the YouTube video.
     #  @param completion The percent complete in the range [0,100].
-    def update_download_completion(self, video_id, completion):
-        self.queued_youtube_videos[video_id].update_percent_complete(completion)
+    def update_download_percent_complete(self, video_id, completion):
+        self.queued_youtube_videos[video_id].update_download_percent_complete(completion)
+
+    ## Received an update on an audio's analysis by its ID.
+    #  @param self The object pointer.
+    #  @param video_id The unique ID of the original YouTube video.
+    #  @param status The most up-to-date analysis status.
+    def update_analysis_status(self, video_id, status):
+        self.queued_youtube_videos[video_id].update_analysis_status(status)
 
     ## Update UI elements given the current sound file playback status.
     #  @param self The object pointer.

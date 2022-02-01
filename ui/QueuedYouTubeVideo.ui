@@ -10,7 +10,7 @@
     <widget class="YouTubeVideoListing" name="youtube_video_listing"/>
    </item>
    <item>
-    <widget class="QWidget" name="progress_bar">
+    <widget class="QWidget" name="download_progress_bar">
      <layout class="QHBoxLayout" name="overall_layout">
       <property name="alignment">
        <set>AlignCenter</set>
@@ -35,6 +35,16 @@
        <widget class="QLabel" name="download_percent_lbl"/>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="analysis_status_lbl">
+     <property name="text">
+      <string>Analysis has not yet started</string>
+     </property>
+     <property name="alignment">
+      <set>AlignRight|AlignVCenter</set>
+     </property>
     </widget>
    </item>
   </layout>

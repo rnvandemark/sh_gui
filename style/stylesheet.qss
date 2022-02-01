@@ -74,7 +74,7 @@ YouTubeVideoListing QLabel#duration {
     font-size: 15px;
 }
 
-QueuedYouTubeVideo QLabel#download_percent_lbl {
+QueuedYouTubeVideo QLabel#download_percent_lbl, QLabel#analysis_status_lbl {
     color: $COLOR_STD_COMPONENT_FG;
     font-family: MSGothic;
     font-size: 15px;

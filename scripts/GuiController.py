@@ -199,9 +199,13 @@ class AudioAnalysisManager(object):
     #  @param feedback The analysis' feedback.
     def handle_feedback(self, feedback):
         status = feedback.feedback.status
-#        self.controller.audio_download_completion_updated.emit(self.video_id, completion)
-        self.controller.gui_node.log_info(
-            "Analysis of '{0}' finished stage {1}.".format(self.local_url, status)
+        self.controller.audio_analysis_status_updated.emit(self.video_id, status)
+        self.controller.gui_node.log_debug(
+            "Analysis of '{0}' (originally '{1}') finished stage {2}.".format(
+                self.local_url,
+                self.video_id,
+                status
+            )
         )
 
     ## Callback for an analysis' result.
@@ -327,6 +331,8 @@ class GuiController(QObject):
     audio_download_queue_confirmed = pyqtSignal(dict)
     ## Emits the audio download's latest progress for the corresponding video
     audio_download_completion_updated = pyqtSignal(str, float)
+    ## Emits the audio analysis' latest status
+    audio_analysis_status_updated = pyqtSignal(str, int)
     ## Emits the video ID of a queued sound that is about to start playing
     starting_sound_file_playback = pyqtSignal(str)
     ## Emits updates on the current sound file playback status
