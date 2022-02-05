@@ -6,8 +6,6 @@ from scripts import GuiUtils
 from scripts.GuiController import GuiController
 from scripts.Ui_Gui import Ui_Gui
 
-from sh_common_interfaces.msg import ModeChange
-
 ## The class encapsulating the display for the app's contents.
 class Gui(QMainWindow):
 
@@ -73,7 +71,7 @@ class Gui(QMainWindow):
         #
 
         # Populate available mode type dropdown
-        self.ui.curr_mode_dropdown.addItems(v[0] for v in GuiUtils.MODES_DICT.values())
+#        self.ui.curr_mode_dropdown.addItems(v[0] for v in GuiUtils.MODES_DICT.values())
         # Set this text here because it's easier to do so than in the .ui file
         self.ui.prev_page_btn.setText("<<")
         self.ui.next_page_btn.setText(">>")
@@ -85,12 +83,10 @@ class Gui(QMainWindow):
         # Make Qt connections
         #
 
-        self.ui.curr_mode_dropdown.currentIndexChanged.connect(self.request_mode_change)
+#        self.ui.curr_mode_dropdown.currentIndexChanged.connect(self.request_mode_change)
         self.ui.prev_page_btn.pressed.connect(self.go_to_prev_page)
         self.ui.next_page_btn.pressed.connect(self.go_to_next_page)
         self.gui_controller.one_hertz_timer.timeout.connect(self.handle_date_time_update)
-        self.mode_type_requested.connect(self.gui_controller.set_mode_type)
-        self.gui_controller.mode_type_updated.connect(self.handle_mode_update)
         self.ui.individual_control_subpage.ui.slider.valueChanged.connect(self.individual_control_intensity_update)
         self.ui.morning_countdown_subpage.countdown_goal_updated.connect(self.gui_controller.set_countdown_goals)
         self.gui_controller.countdown_state_updated.connect(self.ui.morning_countdown_subpage.update_countdown_state)
@@ -113,7 +109,7 @@ class Gui(QMainWindow):
         self.handle_date_time_update()
         # Start controller then initialize current mode
         self.gui_controller.start()
-        self.request_mode_change(self.ui.curr_mode_dropdown.currentIndex())
+#        self.request_mode_change(self.ui.curr_mode_dropdown.currentIndex())
         
         # Done
         self.show()
@@ -134,38 +130,6 @@ class Gui(QMainWindow):
         self.ui.curr_time_lbl.setText(
             GuiUtils.curr_date_time().toString("ddd MMM d, yy\nhh:mm:ss ap")
         )
-
-    ## The callback to updating the current mode label.
-    #  @param self The object pointer.
-    #  @param new_mode The enum of the new mode being entered.
-    def handle_mode_update(self, new_mode):
-        if self.app_is_closing: return
-        # Set label at top-right corner of screen
-        text, color = GuiUtils.get_mode_characteristics(new_mode)
-        self.ui.curr_mode_lbl.setText(text)
-        GuiUtils.set_label_text_color(self.ui.curr_mode_lbl, color)
-        # Select the proper widget out of the two stacks
-        self.ui.mode_stacked_content.setCurrentIndex(new_mode - ModeChange.META_BEGIN)
-        self.ui.all_stacked_content.setCurrentIndex(0)
-
-        # Handle any special requirements to start each type of mode
-        if new_mode == ModeChange.MORNING_COUNTDOWN:
-            curr_date_time, goal_date_time = self.gui_controller.get_default_countdown_time()
-            self.ui.morning_countdown_subpage.set_goal_time(curr_date_time, goal_date_time)
-        elif new_mode == ModeChange.INDIVIDUAL_CONTROL:
-            self.individual_control_intensity_update()
-        elif new_mode == ModeChange.WAVE:
-            self.handle_wave_update_period_update()
-
-    ## Places a request to set the mode type given the dropdown index.
-    #  @param self The object pointer.
-    #  @param index The index in the dropdown menu of the mode change requested.
-    def request_mode_change(self, index):
-        if self.app_is_closing or (index < 0): return
-        # Only bother changing mode if it's different than the current one
-        new_mode = ModeChange.META_BEGIN + index
-        if new_mode != self.gui_controller.gui_node.current_mode:
-            self.mode_type_requested.emit(new_mode)
 
     ## Traverse the given number of pages.
     #  @param self The object pointer.

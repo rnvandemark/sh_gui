@@ -9,9 +9,8 @@ from scripts import GuiUtils
 
 import sh_common_constants
 from sh_common.heartbeat_node import HeartbeatNode
-from sh_common_interfaces.msg import ModeChange, ModeChangeRequest, \
-    DeviceActivationChange, CountdownState, WaveParticipantLocation, \
-    WaveUpdate, Float32Arr, Color, StringArr
+from sh_common_interfaces.msg import DeviceActivationChange, WaveUpdate, \
+    CountdownState, WaveParticipantLocation, Float32Arr, Color, StringArr
 from sh_scc_interfaces.msg import ColorPeaksTelem
 from sh_sfp_interfaces.srv import RequestPlaybackCommand
 from sh_sfp_interfaces.action import DownloadAudio, PlaySoundFile, \
@@ -56,12 +55,6 @@ class GuiNode(HeartbeatNode):
         # ROS publishers
         #
 
-        self.mode_change_pub = self.create_publisher(
-            ModeChange,
-            sh_common_constants.topics.CONFIRMED_MODE_CHANGES,
-            1
-        )
-
 #        self.device_activation_change_pub = self.create_publisher(
 #            DeviceActivationChange,
 #            "/smart_home/device_activation_change_chatter",
@@ -95,13 +88,6 @@ class GuiNode(HeartbeatNode):
         #
         # ROS subscribers
         #
-
-        self.mode_change_request_sub = self.create_subscription(
-            ModeChangeRequest,
-            sh_common_constants.topics.REQUESTED_MODE_CHANGES,
-            self.mode_change_request_callback,
-            1
-        )
 
         self.countdown_state_sub = self.create_subscription(
             CountdownState,
@@ -158,7 +144,6 @@ class GuiNode(HeartbeatNode):
         # Local variable(s)
         self.qt_parent = qt_parent
         self.ros_thread = SimpleRosThread(self, self.qt_parent)
-        self.current_mode = None
 
         # Done
         self.log_info("Started.")
@@ -210,29 +195,6 @@ class GuiNode(HeartbeatNode):
         rclpy_shutdown()
         self.ros_thread.wait()
 
-    ## Repackages and sends out the requested mode type.
-    #  @param self The object pointer.
-    #  @param msg The ROS message describing the node change request.
-    def mode_change_request_callback(self, msg):
-        self.set_mode_type(msg.mode_type)
-    
-    ## The routine to take the provided mode type ROS constant and send a new message.
-    #  @param self The object pointer.
-    def set_mode_type(self, mode_type):
-        mode_change_msg = ModeChange()
-        mode_change_msg.mode_type = mode_type
-        mode_change_msg.header.stamp = self.get_clock().now().to_msg()
-        self.mode_change_pub.publish(mode_change_msg)
-
-        self.current_mode = mode_type
-
-        # If changing to wave mode, advertise to peripheral devices and listen for responses
-        if self.current_mode == ModeChange.WAVE:
-            self.start_wave_mode_pub.publish(Empty())
-
-        self.qt_parent.mode_type_updated.emit(self.current_mode)
-        self.log_info("Set mode to [{0}].".format(self.current_mode))
-    
     ## The routine to take the provided countdown state and send a new message.
     #  @param self The object pointer.
     def set_countdown_state(self, countdown_state):

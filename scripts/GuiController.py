@@ -5,7 +5,7 @@ from collections import OrderedDict
 from PyQt5.QtCore import QObject, QTimer, pyqtSignal
 
 from rclpy import init as rclpy_init
-from sh_common_interfaces.msg import ModeChange, CountdownState, WaveUpdate, \
+from sh_common_interfaces.msg import CountdownState, WaveUpdate, \
     WaveParticipantLocation, Float32Arr
 from sh_scc_interfaces.msg import ColorPeaksTelem
 from sh_sfp_interfaces.msg import PlaybackUpdate
@@ -302,21 +302,6 @@ class SoundFilePlayerManager(object):
         self.stopped = result.was_stopped
         self.controller.handle_completed_sound_file_playback(self.video_id)
 
-## Container to identify the current mode and any data used to support this mode.
-class ActiveModeData(object):
-
-    ## The constructor.
-    #  @param self The object pointer.
-    def __init__(self):
-        self.reset(None)
-
-    ## Set the mode but nullify any assisting data.
-    #  @param self The object pointer.
-    #  @param mode The new mode.
-    def reset(self, mode):
-        self.mode = mode
-        self.data = None
-
 ## A controller for the smart home hub node, and a utility for the GUI as well.
 class GuiController(QObject):
 
@@ -324,8 +309,6 @@ class GuiController(QObject):
     # Qt Signals
     #
 
-    ## Emits the current mode type's enum value
-    mode_type_updated = pyqtSignal(int)
     ## Emits the current morning countdown state
     countdown_state_updated = pyqtSignal(CountdownState)
     ## Emits a wave participant response
@@ -350,7 +333,8 @@ class GuiController(QObject):
         super(GuiController, self).__init__(parent)
 
         # Local variables
-        self.active_mode_data = ActiveModeData()
+        self.morning_countdown_data = None
+        self.wave_update_data = None
 
         self.one_hertz_timer = QTimer(parent=self)
         self.wave_update_timer = QTimer(parent=self)
@@ -373,6 +357,7 @@ class GuiController(QObject):
     def start(self):
         self.gui_node.sh_start()
         self.one_hertz_timer.start(1000)
+        self.wave_update_timer.start(WAVE_UPDATE_PERIOD_MS)
 
     ## Blocking call to stop all peripherals.
     #  @param self The object pointer.
@@ -384,11 +369,10 @@ class GuiController(QObject):
     ## Calculate if the countdown state has changed since the last time this routine ran.
     #  @param self The object pointer.
     def check_for_countdown_state_update(self):
-        # Ignore if not doing the morning countdown routine or if the goal times haven't been set yet
-        if self.active_mode_data.mode != ModeChange.MORNING_COUNTDOWN: return
-        if not self.active_mode_data.data: return
+        # Ignore if the goal times haven't been set yet
+        if not self.morning_countdown_data: return
 
-        curr_state = self.active_mode_data.data.curr_state
+        curr_state = self.morning_countdown_data.curr_state
         next_state = None
 
         # First cycle, do start confirmation
@@ -398,43 +382,31 @@ class GuiController(QObject):
         elif curr_state != CountdownState.EXPIRED:
             # Get latest countdown state that has been reached
             now = GuiUtils.curr_date_time()
-            if (curr_state < CountdownState.EXPIRED) and (self.active_mode_data.data.end <= now):
+            if (curr_state < CountdownState.EXPIRED) and (self.morning_countdown_data.end <= now):
                 next_state = CountdownState.EXPIRED
-            elif (curr_state < CountdownState.RED) and (self.active_mode_data.data.red <= now):
+            elif (curr_state < CountdownState.RED) and (self.morning_countdown_data.red <= now):
                 next_state = CountdownState.RED
-            elif (curr_state < CountdownState.YELLOW) and (self.active_mode_data.data.ylw <= now):
+            elif (curr_state < CountdownState.YELLOW) and (self.morning_countdown_data.ylw <= now):
                 next_state = CountdownState.YELLOW
-            elif (curr_state < CountdownState.GREEN) and (self.active_mode_data.data.grn <= now):
+            elif (curr_state < CountdownState.GREEN) and (self.morning_countdown_data.grn <= now):
                 next_state = CountdownState.GREEN
             elif curr_state == CountdownState.CONFIRMATION:
                 next_state = CountdownState.NONE
 
         if next_state is not None:
             self.set_countdown_state(next_state)
-            self.active_mode_data.data.curr_state = next_state
+            self.morning_countdown_data.curr_state = next_state
             self.gui_node.log_info("Advanced to CountdownState {0}".format(next_state))
 
-    ## Send updates to the intensity of each peripheral device if in wave mode.
+    ## Send updates to the intensity of each peripheral device. If not doing a
+    #  wave, then just skip.
     #  @param self The object pointer.
     def wave_mode_update(self):
-        if self.active_mode_data.mode != ModeChange.WAVE: return
-        msg = self.active_mode_data.data.consume_intensities()
+        if not self.wave_update_data: return
+        msg = self.wave_update_data.consume_intensities()
         if msg is not None:
             self.gui_node.send_wave_update(msg)
 
-    ## Change the mode type, including publishing a message to inform all devices the mode has changed.
-    #  @param self The object pointer.
-    #  @param mode_type The enum value of the new mode type.
-    def set_mode_type(self, mode_type):
-        self.gui_node.set_mode_type(mode_type)
-        self.active_mode_data.reset(mode_type)
-        if mode_type == ModeChange.WAVE:
-            self.active_mode_data.data = WaveUpdateData()
-            self.wave_update_timer.start(WAVE_UPDATE_PERIOD_MS)
-        else:
-            self.wave_update_timer.stop()
-
-    ## Helper function to pass the new countdown state to the ROS node interface.
     #  @param self The object pointer.
     #  @param countdown_state The new countdown state.
     def set_countdown_state(self, countdown_state):
@@ -453,13 +425,7 @@ class GuiController(QObject):
     #  @param red The date-time where the red light should turn on.
     #  @param end The date-time where the goal/expiration time is reached.
     def set_countdown_goals(self, grn, ylw, red, end):
-        if self.active_mode_data.mode != ModeChange.MORNING_COUNTDOWN:
-            self.gui_node.log_warn(
-                "Ignoring countdown goals! Current mode is {0}".format(
-                    self.active_mode_data.mode
-            ))
-            return
-        self.active_mode_data.data = MorningCountdownData(grn, ylw, red, end)
+        self.morning_countdown_data = MorningCountdownData(grn, ylw, red, end)
         self.gui_node.log_info(
             "Received countdown goals: green='{0}', yellow='{1}', red='{2}', goal='{3}'".format(
                 GuiUtils.simply_formatted_date_time(grn),
@@ -481,24 +447,24 @@ class GuiController(QObject):
         # Calculate and return the result as well as the current time used
         return curr_date_time, curr_date_time.addSecs((goal_min - curr_min) * 60)
 
-    ## Handle a response for a peripheral device to participate in the wave.
+    ## Handle a response for a peripheral device to participate in the wave. If
+    #  it is not set, ignore the message.
     #  @param self The object pointer.
     #  @param msg The ROS msg.
     def add_wave_update_participant(self, msg):
-        if self.active_mode_data.mode != ModeChange.WAVE: return
-        if type(self.active_mode_data.data) is not WaveUpdateData: return
-        self.active_mode_data.data.add_participant(msg)
+        if not self.wave_update_data: return
+        self.wave_update_data.add_participant(msg)
         self.gui_node.log_info("Added participant: [{0},{1}]".format(
             msg.participant_id, msg.position
         ))
 
-    ## Set the revolution period of the wave.
+    ## Set the revolution period of the wave. If it is not set, ignore the
+    #  request.
     #  @param self The object pointer.
     #  @param period The period, in milliseconds.
     def set_wave_update_period(self, period):
-        if self.active_mode_data.mode != ModeChange.WAVE: return
-        if type(self.active_mode_data.data) is not WaveUpdateData: return
-        self.active_mode_data.data.period = period
+        if not self.wave_update_data: return
+        self.wave_update_data.period = period
 
     ## Helper function to pass the sound file playback command to the ROS node interface.
     #  @param self The object pointer.

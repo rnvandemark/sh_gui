@@ -59,35 +59,6 @@ beautiful ;)</string>
          </property>
         </widget>
        </item>
-       <item row="7">
-        <widget class="QWidget" name="curr_mode_content">
-         <property name="sizePolicy" >
-          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <layout class="QVBoxLayout" name="curr_mode_layout">
-          <item row="0">
-           <widget class="QLabel">
-            <property name="alignment">
-             <set>AlignCenter</set>
-            </property>
-            <property name="text">
-             <string>Current Mode:</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1">
-           <widget class="QLabel" name="curr_mode_lbl">
-            <property name="alignment">
-             <set>AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
       </layout>
      </widget>
     </item>

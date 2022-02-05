@@ -6,23 +6,12 @@ from PyQt5.QtGui import QPalette, QColor, QImage, QPixmap
 from rclpy.duration import Duration
 from ament_index_python.packages import get_package_share_directory
 from cv_bridge import CvBridge
-from sh_common_interfaces.msg import ModeChange
 
 #
 # Constants
 #
 
 GUI_INSTALL_LIB_DIRECTORY = get_package_share_directory("sh_gui")
-
-MODES_DICT = {
-    ModeChange.FULL_OFF             : ("Full Off",           "#0F2F2F"),
-    ModeChange.FULL_ON              : ("Full On",            "#3CCB2C"),
-    ModeChange.INDIVIDUAL_CONTROL   : ("Individual Control", "#F0E68C"),
-    ModeChange.MORNING_COUNTDOWN    : ("Morning Countdown",  "#F0E68C"),
-    ModeChange.FOLLOW_COMPUTER_SOUND: ("Follow Hub",         "#F0E68C"),
-    ModeChange.FOLLOW_ROOM_SOUND    : ("Follow Room",        "#F0E68C"),
-    ModeChange.WAVE                 : ("Wave",               "#F0E68C")
-}
 
 TRAFFIC_LIGHT_IMAGE_WIDTH  = 200
 TRAFFIC_LIGHT_IMAGE_HEIGHT = 500
@@ -37,12 +26,6 @@ CV_BRIDGE = CvBridge()
 #
 # Global functions
 #
-
-## Given a smart home mode, get a user-friendly name and a color code for it.
-#  @param val The key in the dictionary.
-#  @return A tuple of the name and color code.
-def get_mode_characteristics(val):
-    return MODES_DICT[val] if val in MODES_DICT else ("UNDEFINED", "#FF0000")
 
 ## Get the full path of some file in this package.
 #  @param url_components The remaining/suffix components of the file URL.
