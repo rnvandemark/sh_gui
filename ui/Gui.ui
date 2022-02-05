@@ -41,16 +41,7 @@ beautiful ;)</string>
         <widget class="QWidget"/>
        </item>
        <item row="3">
-        <widget class="QPushButton" name="prev_page_btn"/>
-       </item>
-       <item row="4">
-        <widget class="QPushButton" name="next_page_btn"/>
-       </item>
-       <item row="5">
-        <widget class="QWidget"/>
-       </item>
-       <item row="6">
-        <widget class="QComboBox" name="curr_mode_dropdown">
+        <widget class="QComboBox" name="curr_stacked_group_dropdown">
          <property name="sizePolicy">
           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -59,22 +50,38 @@ beautiful ;)</string>
          </property>
         </widget>
        </item>
+       <item row="4">
+        <widget class="QWidget"/>
+       </item>
+       <item row="5">
+        <widget class="QPushButton" name="prev_page_btn"/>
+       </item>
+       <item row="6">
+        <widget class="QPushButton" name="next_page_btn"/>
+       </item>
       </layout>
      </widget>
     </item>
     <item row="1">
-     <widget class="QStackedWidget" name="all_stacked_content">
-      <widget class="QStackedWidget" name="mode_stacked_content">
-       <widget class="QWidget" name="full_off_subpage"/>
-       <widget class="QWidget" name="full_on_subpage"/>
-       <widget class="LabeledSliderSubpage" name="individual_control_subpage"/>
-       <widget class="MorningCountdownSubpage" name="morning_countdown_subpage"/>
-       <widget class="FollowHubSubpage" name="follow_hub_subpage"/>
-       <widget class="QWidget" name="follow_room_sound_subpage"/>
-       <widget class="LabeledSliderSubpage" name="wave_subpage"/>
+     <widget class="QStackedWidget" name="stacked_page_groups">
+      <widget class="StackedPageGroup">
+       <property name="groupName">
+        <string>Sound File Playback</string>
+       </property>
+       <widget class="SoundFilePlaybackPage" name="sound_file_playback_page"/>
       </widget>
-      <widget class="ScreenColorCoordination" name="screen_color_coordination_page"/>
-      <widget class="SoundFilePlaybackPage" name="sound_file_playback_page"/>
+      <widget class="StackedPageGroup">
+       <property name="groupName">
+        <string>Screen Color Coordination</string>
+       </property>
+       <widget class="ScreenColorCoordination" name="screen_color_coordination_page"/>
+      </widget>
+      <widget class="StackedPageGroup">
+       <property name="groupName">
+        <string>Traffic Light</string>
+       </property>
+       <widget class="MorningCountdownSubpage" name="morning_countdown_subpage"/>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -82,16 +89,13 @@ beautiful ;)</string>
  </widget>
  <customwidgets>
   <customwidget>
+    <class>StackedPageGroup</class>
+    <header>scripts.StackedPageGroup</header>
+    <extends>QStackedWidget</extends>
+  </customwidget>
+  <customwidget>
     <class>MorningCountdownSubpage</class>
     <header>scripts.MorningCountdownSubpage</header>
-  </customwidget>
-  <customwidget>
-    <class>LabeledSliderSubpage</class>
-    <header>scripts.LabeledSliderSubpage</header>
-  </customwidget>
-  <customwidget>
-    <class>FollowHubSubpage</class>
-    <header>scripts.FollowHubSubpage</header>
   </customwidget>
   <customwidget>
     <class>ScreenColorCoordination</class>

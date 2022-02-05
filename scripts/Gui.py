@@ -48,11 +48,10 @@ class Gui(QMainWindow):
             (0,16),
             (1,16),
             (2,4),
-            (3,5),
-            (4,5),
-            (5,4),
-            (6,23),
-            (7,23)
+            (3,40),
+            (4,4),
+            (5,10),
+            (6,10)
         )
 
         # Set background image
@@ -70,27 +69,27 @@ class Gui(QMainWindow):
         # Set dynamic/miscellaneous values
         #
 
-        # Populate available mode type dropdown
-#        self.ui.curr_mode_dropdown.addItems(v[0] for v in GuiUtils.MODES_DICT.values())
+        # Populate available page groups dropdown then navigate to the page it
+        # points to by default
+        self.ui.curr_stacked_group_dropdown.addItems(
+            self.ui.stacked_page_groups.widget(i).groupName for i in range(self.ui.stacked_page_groups.count())
+        )
+        self.change_stacked_group(self.ui.curr_stacked_group_dropdown.currentIndex())
+
         # Set this text here because it's easier to do so than in the .ui file
         self.ui.prev_page_btn.setText("<<")
         self.ui.next_page_btn.setText(">>")
-        # Set single-slider subpage slider states
-        self.ui.individual_control_subpage.set_slider_state(1, 1000, 500)
-        self.ui.wave_subpage.set_slider_state(1, 6000, 1000)
 
         #
         # Make Qt connections
         #
 
-#        self.ui.curr_mode_dropdown.currentIndexChanged.connect(self.request_mode_change)
+        self.ui.curr_stacked_group_dropdown.currentIndexChanged.connect(self.change_stacked_group)
         self.ui.prev_page_btn.pressed.connect(self.go_to_prev_page)
         self.ui.next_page_btn.pressed.connect(self.go_to_next_page)
         self.gui_controller.one_hertz_timer.timeout.connect(self.handle_date_time_update)
-        self.ui.individual_control_subpage.ui.slider.valueChanged.connect(self.individual_control_intensity_update)
         self.ui.morning_countdown_subpage.countdown_goal_updated.connect(self.gui_controller.set_countdown_goals)
         self.gui_controller.countdown_state_updated.connect(self.ui.morning_countdown_subpage.update_countdown_state)
-        self.ui.wave_subpage.ui.slider.valueChanged.connect(self.handle_wave_update_period_update)
         self.gui_controller.wave_participant_responded.connect(self.gui_controller.add_wave_update_participant)
         self.gui_controller.scc_telemetry_updated.connect(self.ui.screen_color_coordination_page.update_scc_telemetry)
         self.ui.sound_file_playback_page.audio_download_queue_requested.connect(self.gui_controller.queue_youtube_video_for_download)
@@ -107,9 +106,8 @@ class Gui(QMainWindow):
 
         # Set initial values for date-time label
         self.handle_date_time_update()
-        # Start controller then initialize current mode
+        # Finally, start the controller
         self.gui_controller.start()
-#        self.request_mode_change(self.ui.curr_mode_dropdown.currentIndex())
         
         # Done
         self.show()
@@ -131,13 +129,22 @@ class Gui(QMainWindow):
             GuiUtils.curr_date_time().toString("ddd MMM d, yy\nhh:mm:ss ap")
         )
 
-    ## Traverse the given number of pages.
+    ## Changes the active stacked page group.
+    #  @param self The object pointer.
+    #  @param new_index The index in the dropdown menu of the group selected.
+    def change_stacked_group(self, new_index):
+        if self.app_is_closing or (new_index < 0): return
+        self.ui.stacked_page_groups.setCurrentIndex(new_index)
+
+    ## Traverse the given number of pages within the current page group.
     #  @param self The object pointer.
     #  @param diff The number of indices to translate by.
     def translate_page(self, diff):
-        self.ui.all_stacked_content.setCurrentIndex(
-            (self.ui.all_stacked_content.currentIndex() + diff) % self.ui.all_stacked_content.count()
-        )
+        curr_group = self.ui.stacked_page_groups.currentWidget()
+        if None != curr_group:
+            curr_group.setCurrentIndex(
+                (curr_group.currentIndex() + diff) % curr_group.count()
+            )
 
     ## The callback to decrement the window page index.
     #  @param self The object pointer.
@@ -148,19 +155,3 @@ class Gui(QMainWindow):
     #  @param self The object pointer.
     def go_to_next_page(self):
         self.translate_page(+1)
-
-    ## The callback to changing the individual control intensity slider.
-    #  @param self The object pointer.
-    def individual_control_intensity_update(self):
-        slider = self.ui.individual_control_subpage.ui.slider
-        intensity = slider.value() / (slider.maximum() - slider.minimum() + 1)
-        self.ui.individual_control_subpage.set_slider_label(str(round(intensity, 3)))
-        self.gui_controller.set_individual_control_intensity(intensity)
-
-    ## The callback to changing the wave update period slider.
-    #  @param self The object pointer.
-    def handle_wave_update_period_update(self):
-        slider = self.ui.wave_subpage.ui.slider
-        period_ms = 60000 * slider.value() // (slider.maximum() - slider.minimum() + 1)
-        self.ui.wave_subpage.set_slider_label("{0} seconds".format(round(period_ms/1000, 3)))
-        self.gui_controller.set_wave_update_period(period_ms)
