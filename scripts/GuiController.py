@@ -254,6 +254,7 @@ class SoundFilePlayerManager(object):
         self.active = True
         self.send_sound_file_playback_goal_future = self.controller.gui_node.request_play_sound_file(
             self.handle_feedback,
+            self.video_id,
             self.local_url,
             self.characteristics
         )

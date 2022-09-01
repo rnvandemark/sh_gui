@@ -309,13 +309,15 @@ class GuiNode(HeartbeatNode):
     ## Place a request to play the sound file at the specified path.
     #  @param self The object pointer.
     #  @param feedback_callback The callback function to handle feedback from the action server.
+    #  @param video_id The unique video ID of the sound file
     #  @param local_url The absolute filename of the sound file saved locally.
     #  @param characteristics The characteristics of the audio found from analysis.
     #  @return The future object created for the goal request.
-    def request_play_sound_file(self, feedback_callback, local_url, characteristics):
+    def request_play_sound_file(self, feedback_callback, video_id, local_url, characteristics):
         return GuiUtils.send_action_goal_async(
             self.play_sound_file_act,
             PlaySoundFile.Goal(labeled_audio_characteristics=LabeledAudioCharacteristics(
+                video_id=video_id,
                 local_url=local_url,
                 characteristics=characteristics
             )),
